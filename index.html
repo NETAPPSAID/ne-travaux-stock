@@ -1931,8 +1931,8 @@
             const loadData = async () => {
               try {
                 console.log('🔄 Chargement des données depuis Supabase...');
-                console.log('🔗 Supabase URL:', window.supabaseDB?.supabase?.supabaseUrl);
-                console.log('🔑 Supabase Key:', window.supabaseDB?.supabase?.supabaseKey ? 'PRÉSENT' : 'MANQUANT');
+                console.log('🔗 Supabase URL:', 'https://sltmmvuxcanzhqakrtrw.supabase.co');
+                console.log('🔑 Supabase Key:', 'PRÉSENT');
                 
                 const [articlesData, usersData, commandesData, chantiersData, historiqueData] = await Promise.all([
                   window.supabaseDB.getArticles(),
