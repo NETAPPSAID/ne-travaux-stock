@@ -67,6 +67,7 @@ window.supabaseDB = {
     const { data, error } = await supabase
       .from('chantiers')
       .insert(chantier)
+      .select() // Ajouter .select() pour récupérer les données insérées
     console.log('🏗️ Résultat ajout chantier:', { data, error })
     return { data, error }
   },
@@ -76,6 +77,7 @@ window.supabaseDB = {
       .from('chantiers')
       .update(updates)
       .eq('id', id)
+      .select() // Ajouter .select() pour récupérer les données mises à jour
     return { data, error }
   },
 
@@ -84,6 +86,7 @@ window.supabaseDB = {
       .from('chantiers')
       .delete()
       .eq('id', id)
+      .select() // Ajouter .select() pour récupérer les données supprimées
     return { data, error }
   },
 
@@ -99,6 +102,7 @@ window.supabaseDB = {
     const { data, error } = await supabase
       .from('articles')
       .insert(article)
+      .select() // Ajouter .select() pour récupérer les données insérées
     return { data, error }
   },
 
@@ -107,6 +111,7 @@ window.supabaseDB = {
       .from('articles')
       .update(updates)
       .eq('id', id)
+      .select() // Ajouter .select() pour récupérer les données mises à jour
     return { data, error }
   },
 
@@ -115,6 +120,7 @@ window.supabaseDB = {
       .from('articles')
       .delete()
       .eq('id', id)
+      .select() // Ajouter .select() pour récupérer les données supprimées
     return { data, error }
   },
 

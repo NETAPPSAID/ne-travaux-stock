@@ -1256,7 +1256,9 @@
            };
 
            const handleAddChantier = () => {
+             console.log('🔍 handleAddChantier appelé avec newChantier:', newChantier);
              if (newChantier.nom.trim()) {
+               console.log('🔍 Appel de onAddChantier avec:', newChantier);
                onAddChantier(newChantier);
                setNewChantier({ nom: '', description: '', statut: 'actif' });
                setShowAddChantierForm(false);
@@ -2184,6 +2186,8 @@
            const addChantier = async (newChantier) => {
              try {
                console.log('🏗️ Début ajout chantier:', newChantier);
+               console.log('🔍 Type de newChantier:', typeof newChantier);
+               console.log('🔍 Contenu de newChantier:', JSON.stringify(newChantier));
                
                // Préparer le chantier sans ID (Supabase l'auto-génère)
                const chantier = {

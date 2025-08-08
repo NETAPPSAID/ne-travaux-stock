@@ -1,0 +1,5 @@
+[33m6f760c9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix: Correction de l'ajout de chantier - laisser Supabase auto-générer l'ID
+[33ma0c1f08[m Fix: Ajout de test de connexion Supabase et clarification des logs
+[33mb74a5f1[m Fix: Ajout de vérifications pour supabaseDB et amélioration des logs
+[33meb701bf[m Fix: Amélioration de la fonction addChantier avec plus de logs et gestion d'erreurs
+[33m60c0b31[m Fix: Correction des variables Supabase et amélioration de la persistance des chantiers

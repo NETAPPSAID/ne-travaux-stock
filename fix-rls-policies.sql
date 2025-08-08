@@ -35,3 +35,12 @@ CREATE POLICY "Enable all access" ON uploaded_files FOR ALL USING (true) WITH CH
 
 -- 5. Message de confirmation
 SELECT 'Politiques RLS corrigées avec succès!' as message;
+
+-- Correction de la séquence pour les chantiers après insertion des données initiales
+SELECT setval('chantiers_id_seq', (SELECT MAX(id) FROM chantiers), true);
+
+-- Correction de la séquence pour les articles après insertion des données initiales  
+SELECT setval('articles_id_seq', (SELECT MAX(id) FROM articles), true);
+
+-- Correction de la séquence pour les utilisateurs après insertion des données initiales
+SELECT setval('users_matricule_seq', (SELECT MAX(matricule) FROM users), true);
