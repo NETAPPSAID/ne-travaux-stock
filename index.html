@@ -1933,6 +1933,15 @@
                 console.log('🔄 Chargement des données depuis Supabase...');
                 console.log('🔗 Supabase URL:', 'https://sltmmvuxcanzhqakrtrw.supabase.co');
                 console.log('🔑 Supabase Key:', 'PRÉSENT');
+                console.log('🔧 Vérification supabaseDB:', !!window.supabaseDB);
+                
+                // Vérifier que supabaseDB est disponible
+                if (!window.supabaseDB) {
+                  console.error('❌ supabaseDB non disponible');
+                  throw new Error('Connexion à Supabase non disponible');
+                }
+                
+                console.log('✅ supabaseDB disponible, fonctions:', Object.keys(window.supabaseDB));
                 
                 const [articlesData, usersData, commandesData, chantiersData, historiqueData] = await Promise.all([
                   window.supabaseDB.getArticles(),
