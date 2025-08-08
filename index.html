@@ -1934,6 +1934,7 @@
                 console.log('🔗 Supabase URL:', 'https://sltmmvuxcanzhqakrtrw.supabase.co');
                 console.log('🔑 Supabase Key:', 'PRÉSENT');
                 console.log('🔧 Vérification supabaseDB:', !!window.supabaseDB);
+                console.log('🔧 Configuration directe utilisée (pas de variables d\'environnement)');
                 
                 // Vérifier que supabaseDB est disponible
                 if (!window.supabaseDB) {
@@ -1942,6 +1943,14 @@
                 }
                 
                 console.log('✅ supabaseDB disponible, fonctions:', Object.keys(window.supabaseDB));
+                
+                // Test de connexion Supabase
+                try {
+                  const testConnection = await window.supabaseDB.getChantiers();
+                  console.log('🔗 Test connexion Supabase réussi:', testConnection?.length || 0, 'chantiers trouvés');
+                } catch (error) {
+                  console.error('❌ Test connexion Supabase échoué:', error);
+                }
                 
                 const [articlesData, usersData, commandesData, chantiersData, historiqueData] = await Promise.all([
                   window.supabaseDB.getArticles(),
