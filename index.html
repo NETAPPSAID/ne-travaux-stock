@@ -1931,6 +1931,8 @@
             const loadData = async () => {
               try {
                 console.log('🔄 Chargement des données depuis Supabase...');
+                console.log('🔗 Supabase URL:', window.supabaseDB?.supabase?.supabaseUrl);
+                console.log('🔑 Supabase Key:', window.supabaseDB?.supabase?.supabaseKey ? 'PRÉSENT' : 'MANQUANT');
                 
                 const [articlesData, usersData, commandesData, chantiersData, historiqueData] = await Promise.all([
                   window.supabaseDB.getArticles(),
@@ -1940,10 +1942,20 @@
                   window.supabaseDB.getHistorique()
                 ]);
                 
-                setArticles(articlesData.length > 0 ? articlesData : initialArticles);
-                setUsers(usersData.length > 0 ? usersData : initialUsers);
+                console.log('📊 Données récupérées:', {
+                  articles: articlesData?.length || 0,
+                  users: usersData?.length || 0,
+                  commandes: commandesData?.length || 0,
+                  chantiers: chantiersData?.length || 0,
+                  historique: historiqueData?.length || 0
+                });
+                
+                console.log('🏗️ Chantiers récupérés:', chantiersData);
+                
+                setArticles(articlesData?.length > 0 ? articlesData : initialArticles);
+                setUsers(usersData?.length > 0 ? usersData : initialUsers);
                 setCommandes(commandesData || []);
-                setChantiers(chantiersData.length > 0 ? chantiersData : initialChantiers);
+                setChantiers(chantiersData?.length > 0 ? chantiersData : initialChantiers);
                 setHistorique(historiqueData || []);
                 
                 console.log('✅ Données chargées avec succès depuis Supabase');
