@@ -1,0 +1,15 @@
+{
+  "name": "application-said",
+  "version": "1.0.0",
+  "description": "Application web responsive pour la gestion de stock dans le secteur BTP, conçue comme une PWA (Progressive Web App) installable.",
+  "main": "Admin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.54.0"
+  }
+}
