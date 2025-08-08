@@ -2163,15 +2163,40 @@
            };
 
            // Fonctions de gestion des chantiers
-           const addChantier = (newChantier) => {
-             const chantier = {
-               id: Date.now(),
-               nom: newChantier.nom,
-               description: newChantier.description,
-               statut: newChantier.statut,
-               pointeurs: []
-             };
-             setChantiers([...chantiers, chantier]);
+           const addChantier = async (newChantier) => {
+             try {
+               // Générer un ID unique basé sur le max ID existant + 1
+               const maxId = Math.max(...chantiers.map(c => c.id), 0);
+               const newId = maxId + 1;
+               
+               const chantier = {
+                 id: newId,
+                 nom: newChantier.nom,
+                 description: newChantier.description,
+                 statut: newChantier.statut || 'actif',
+                 pointeurs: []
+               };
+               
+               console.log('🏗️ Ajout chantier avec ID:', newId);
+               
+               // Ajouter à Supabase
+               const { data, error } = await window.supabaseDB.addChantier(chantier);
+               
+               if (error) {
+                 console.error('❌ Erreur ajout chantier:', error);
+                 alert('Erreur lors de l\'ajout du chantier');
+                 return;
+               }
+               
+               console.log('✅ Chantier ajouté avec succès:', data);
+               
+               // Mettre à jour l'état local
+               setChantiers([...chantiers, chantier]);
+               
+             } catch (error) {
+               console.error('❌ Erreur ajout chantier:', error);
+               alert('Erreur lors de l\'ajout du chantier');
+             }
            };
 
            const updateChantier = (chantierId, updates) => {
