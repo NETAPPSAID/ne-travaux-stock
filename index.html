@@ -2185,16 +2185,12 @@
              try {
                console.log('🏗️ Début ajout chantier:', newChantier);
                
-               // Générer un ID unique basé sur le max ID existant + 1
-               const maxId = Math.max(...chantiers.map(c => c.id), 0);
-               const newId = maxId + 1;
-               
+               // Ne pas fournir l'ID - laisser Supabase l'auto-générer
                const chantier = {
-                 id: newId,
                  nom: newChantier.nom,
                  description: newChantier.description,
                  statut: newChantier.statut || 'actif',
-                 pointeurs: []
+                 icone: newChantier.icone || '🏗️'
                };
                
                console.log('🏗️ Chantier préparé avec ID:', newId, chantier);
