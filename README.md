@@ -1,193 +1,117 @@
-# NE TRAVAUX - Gestion de Stock BTP
+# NE TRAVAUX - Gestion de Stock
 
-Application web responsive pour la gestion de stock dans le secteur BTP, conçue comme une PWA (Progressive Web App) installable.
+Application web PWA pour la gestion de stock dans le secteur BTP, développée avec React, Tailwind CSS et Supabase.
 
 ## 🚀 Fonctionnalités
 
-### 🔐 Connexion
-- **Matricules disponibles :**
-  - `100` : Said El Khalfaoui (Admin)
-  - `200` : Pointeur 1 (Chantier A)
-  - `300` : Pointeur 2 (Chantier B)
-  - `400` : Pointeur 3 (Chantier C)
-  - `500` : Pointeur 4 (Chantier D)
-  - `600` : Pointeur 5 (Chantier E)
+- **Gestion de stock par chantier** : Chaque pointeur gère le stock de son chantier assigné
+- **Interface admin complète** : Gestion des articles, utilisateurs, chantiers
+- **Synchronisation temps réel** : Mises à jour instantanées via Supabase
+- **Upload de fichiers** : Bons d'entrée avec support images et PDF
+- **Génération de documents** : Bons de livraison et états de stock
+- **PWA installable** : Fonctionne hors ligne et s'installe comme une app
 
-### 📦 Gestion de Stock
-- **Articles initiaux :**
-  - 🛠️ Ciment (100 unités)
-  - 🏖️ Sable (500 unités)
-  - 🧱 Briques (1000 unités)
+## 👥 Utilisateurs
 
-- **Fonctionnalités :**
-  - Gestion des entrées/sorties de stock
-  - Calcul automatique des quantités
-  - Génération de bons de livraison
-  - Impression d'états de stock
-  - Upload de bons d'entrée (simulation)
-
-### 📋 Commandes
-- Système de commandes partagées
-- Notifications visuelles pour tous les utilisateurs
-- Export CSV des commandes
-- Impression de rapports
-
-### ⚙️ Administration (Admin uniquement)
-- Gestion des utilisateurs (modifier chantiers, supprimer)
-- Gestion des articles (ajouter, supprimer)
-- Export des données
-- Rapports administratifs
+- **Admin (Matricule 100)** : Accès complet à toutes les fonctionnalités
+- **Pointeurs (200-600)** : Gestion du stock de leur chantier assigné
 
 ## 🛠️ Technologies
 
-- **Frontend :** React 18
-- **Styles :** Tailwind CSS
-- **Stockage :** localStorage (simulation backend)
-- **PWA :** Manifest + Service Worker
-- **Icônes :** Emojis pour une identification visuelle rapide
+- **Frontend** : React 18, Tailwind CSS
+- **Backend** : Supabase (PostgreSQL, Storage, Real-time)
+- **PWA** : Service Worker, Manifest
+- **Déploiement** : Netlify
 
-## 📱 Installation et Utilisation
+## 📦 Installation Locale
 
-### 1. Lancement de l'application
-```bash
-# Ouvrir le fichier index.html dans un navigateur web
-# Ou utiliser un serveur local :
-python -m http.server 8000
-# Puis ouvrir http://localhost:8000
+1. **Cloner le repository**
+   ```bash
+   git clone [URL_DU_REPO]
+   cd ne-travaux-stock
+   ```
+
+2. **Installer les dépendances**
+   ```bash
+   npm install
+   ```
+
+3. **Configurer les variables d'environnement**
+   Créer un fichier `.env` :
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Lancer le serveur local**
+   ```bash
+   npx http-server -p 8000
+   ```
+
+5. **Ouvrir** `http://localhost:8000`
+
+## 🌐 Déploiement
+
+### Déploiement sur Netlify
+
+1. **Connecter le repository Git** à Netlify
+2. **Configurer les variables d'environnement** dans Netlify :
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. **Déployer automatiquement** à chaque push
+
+### Configuration Supabase
+
+1. **Créer un projet Supabase**
+2. **Exécuter le script SQL** (`database-setup.sql`)
+3. **Configurer les variables d'environnement**
+
+## 🔧 Configuration
+
+### Variables d'environnement requises
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-### 2. Installation comme PWA
-1. Ouvrir l'application dans Chrome/Edge
-2. Cliquer sur l'icône d'installation dans la barre d'adresse
-3. Ou utiliser le menu "Ajouter à l'écran d'accueil"
+### Structure de la base de données
 
-### 3. Test des fonctionnalités
+- **users** : Utilisateurs et rôles
+- **chantiers** : Sites de construction
+- **articles** : Stock par chantier
+- **stock_movements** : Historique des entrées/sorties
+- **commandes** : Commandes avec notes
+- **uploaded_files** : Fichiers uploadés
 
-#### Connexion Admin (Matricule 100)
-- Accès complet à toutes les fonctionnalités
-- Gestion des utilisateurs et articles
-- Rapports administratifs
+## 📱 Utilisation
 
-#### Connexion Pointeur (Matricules 200-600)
-- Consultation du stock
-- Passage de commandes
-- Gestion des entrées/sorties
-- Génération de bons de livraison
+### Connexion
+- **Admin** : Matricule 100, mot de passe `admin123`
+- **Pointeurs** : Matricules 200-600, mot de passe `pointeur123`
 
-## 📋 Guide d'utilisation
+### Fonctionnalités principales
 
-### Gestion du Stock
-1. **Modifier les quantités :**
-   - Saisir les valeurs dans les champs "Entrée" et "Sortie"
-   - La quantité totale se met à jour automatiquement
+#### Pour les Pointeurs :
+- Gestion du stock de leur chantier
+- Saisie entrées/sorties avec validation
+- Upload de bons d'entrée (optionnel)
+- Placement de commandes avec notes
 
-2. **Passer une commande :**
-   - Saisir la quantité souhaitée
-   - Cliquer sur "Commander"
-   - La commande apparaît dans l'onglet "Commandes"
+#### Pour l'Admin :
+- Gestion complète des articles, utilisateurs, chantiers
+- Vue globale du stock par chantier
+- Historique des mouvements
+- Génération d'états de stock
 
-3. **Imprimer l'état :**
-   - Cliquer sur "Imprimer État"
-   - Une nouvelle fenêtre s'ouvre avec le rapport
+## 🔄 Mise à jour
 
-4. **Générer un bon de livraison :**
-   - Cliquer sur "Bon de Livraison"
-   - Le fichier se télécharge automatiquement
+Pour modifier l'application :
 
-### Administration
-1. **Gérer les utilisateurs :**
-   - Modifier les noms et chantiers
-   - Supprimer des utilisateurs (sauf admin)
-
-2. **Gérer les articles :**
-   - Ajouter de nouveaux articles avec icônes
-   - Supprimer des articles existants
-
-3. **Exporter les données :**
-   - Export JSON des données complètes
-   - Rapports imprimables
-
-## 🔧 Fonctionnalités PWA
-
-- **Mode hors ligne :** Consultation du stock disponible
-- **Installation :** Comme une application native
-- **Responsive :** Adapté PC, tablette, mobile
-- **Cache :** Données stockées localement
-
-## 📊 Structure des données
-
-### Articles
-```javascript
-{
-  id: number,
-  nom: string,
-  icone: string,
-  quantite: number,
-  entree: number,
-  sortie: number
-}
-```
-
-### Utilisateurs
-```javascript
-{
-  matricule: string,
-  nom: string,
-  role: 'admin' | 'pointeur',
-  chantier: string
-}
-```
-
-### Commandes
-```javascript
-{
-  id: number,
-  articleId: number,
-  nomArticle: string,
-  quantite: number,
-  nomUtilisateur: string,
-  date: string
-}
-```
-
-## 🎨 Interface utilisateur
-
-- **Design responsive :** 1 colonne (mobile) → 2 colonnes (tablette) → 3 colonnes (PC)
-- **Icônes emoji :** Identification visuelle rapide des articles
-- **Couleurs distinctes :** Bleu (actions), Vert (ajouter), Rouge (supprimer)
-- **Navigation simple :** Onglets clairs et intuitifs
-
-## 🔒 Sécurité et données
-
-- **Stockage local :** Données persistantes via localStorage
-- **Pas de backend :** Simulation complète côté client
-- **Rôles :** Admin vs Pointeur avec permissions différentes
-- **Validation :** Contrôles de saisie et confirmations
-
-## 📝 Notes techniques
-
-- **Compatibilité :** Navigateurs modernes (Chrome, Firefox, Safari, Edge)
-- **Performance :** Application légère et rapide
-- **Maintenance :** Code modulaire et commenté
-- **Évolutivité :** Structure prête pour l'ajout d'un backend réel
-
-## 🚀 Déploiement
-
-L'application peut être déployée sur :
-- Serveur web classique
-- GitHub Pages
-- Netlify
-- Vercel
-- Tout hébergeur statique
+1. **Faire les changements** dans le code
+2. **Commiter et pousser** vers Git
+3. **Netlify déploie automatiquement**
 
 ## 📞 Support
 
-Pour toute question ou amélioration :
-- Vérifier la console du navigateur pour les erreurs
-- Les données sont sauvegardées automatiquement
-- Redémarrer l'application si nécessaire
-
----
-
-**NE TRAVAUX - Gestion de Stock BTP**  
-*Application simple et efficace pour la gestion de stock sur chantier*
+Pour toute question ou problème, consulter la documentation Supabase ou contacter l'équipe de développement.
