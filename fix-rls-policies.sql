@@ -1,4 +1,4 @@
--- Script pour vérifier et corriger les RLS Policies
+-- Script pour corriger les RLS Policies dans Supabase
 -- Exécute ce script dans l'éditeur SQL de Supabase
 
 -- 1. Vérifier les policies existantes
@@ -15,13 +15,13 @@ FROM pg_policies
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 
--- 2. Supprimer toutes les policies existantes (optionnel - décommente si nécessaire)
--- DROP POLICY IF EXISTS "Enable all access" ON chantiers;
--- DROP POLICY IF EXISTS "Enable all access" ON users;
--- DROP POLICY IF EXISTS "Enable all access" ON articles;
--- DROP POLICY IF EXISTS "Enable all access" ON commandes;
--- DROP POLICY IF EXISTS "Enable all access" ON stock_movements;
--- DROP POLICY IF EXISTS "Enable all access" ON uploaded_files;
+-- 2. Supprimer toutes les policies existantes
+DROP POLICY IF EXISTS "Enable all access" ON chantiers;
+DROP POLICY IF EXISTS "Enable all access" ON users;
+DROP POLICY IF EXISTS "Enable all access" ON articles;
+DROP POLICY IF EXISTS "Enable all access" ON commandes;
+DROP POLICY IF EXISTS "Enable all access" ON stock_movements;
+DROP POLICY IF EXISTS "Enable all access" ON uploaded_files;
 
 -- 3. Activer RLS sur toutes les tables
 ALTER TABLE chantiers ENABLE ROW LEVEL SECURITY;

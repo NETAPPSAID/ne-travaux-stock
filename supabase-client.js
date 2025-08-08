@@ -1,8 +1,14 @@
 // Client Supabase pour NE TRAVAUX GESTION DE STOCK
 
-// Configuration Supabase
+// Configuration Supabase - Clés directes pour Netlify
 const SUPABASE_URL = 'https://sltmmvuxcanzhqakrtrw.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsdG1tdnV4Y2FuemhxYWtydHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDk2MDIsImV4cCI6MjA3MDIyNTYwMn0.zlue3-HiLaxu6Frg27pZokTCvW4rlkesT-1RxRyjoxU'
+
+// Log pour vérifier la configuration
+console.log('🔧 Configuration Supabase:', {
+  url: SUPABASE_URL,
+  key: SUPABASE_ANON_KEY ? 'PRÉSENT' : 'MANQUANT'
+})
 
 // Créer le client Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -57,9 +63,11 @@ window.supabaseDB = {
   },
 
   async addChantier(chantier) {
+    console.log('🏗️ Tentative d\'ajout chantier:', chantier)
     const { data, error } = await supabase
       .from('chantiers')
       .insert(chantier)
+    console.log('🏗️ Résultat ajout chantier:', { data, error })
     return { data, error }
   },
 
