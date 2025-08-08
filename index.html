@@ -2165,6 +2165,8 @@
            // Fonctions de gestion des chantiers
            const addChantier = async (newChantier) => {
              try {
+               console.log('🏗️ Début ajout chantier:', newChantier);
+               
                // Générer un ID unique basé sur le max ID existant + 1
                const maxId = Math.max(...chantiers.map(c => c.id), 0);
                const newId = maxId + 1;
@@ -2177,25 +2179,46 @@
                  pointeurs: []
                };
                
-               console.log('🏗️ Ajout chantier avec ID:', newId);
+               console.log('🏗️ Chantier préparé avec ID:', newId, chantier);
                
-               // Ajouter à Supabase
-               const { data, error } = await window.supabaseDB.addChantier(chantier);
-               
-               if (error) {
-                 console.error('❌ Erreur ajout chantier:', error);
-                 alert('Erreur lors de l\'ajout du chantier');
+               // Vérifier que supabaseDB est disponible
+               if (!window.supabaseDB) {
+                 console.error('❌ supabaseDB non disponible');
+                 alert('Erreur: Connexion à la base de données non disponible');
                  return;
                }
                
-               console.log('✅ Chantier ajouté avec succès:', data);
+               // Ajouter à Supabase
+               console.log('🏗️ Envoi vers Supabase...');
+               const result = await window.supabaseDB.addChantier(chantier);
+               console.log('🏗️ Réponse Supabase:', result);
+               
+               if (result.error) {
+                 console.error('❌ Erreur ajout chantier:', result.error);
+                 alert(`Erreur lors de l'ajout du chantier: ${result.error.message || result.error}`);
+                 return;
+               }
+               
+               console.log('✅ Chantier ajouté avec succès:', result.data);
                
                // Mettre à jour l'état local
-               setChantiers([...chantiers, chantier]);
+               const updatedChantiers = [...chantiers, chantier];
+               setChantiers(updatedChantiers);
+               console.log('✅ État local mis à jour:', updatedChantiers);
+               
+               // Recharger les données depuis Supabase pour confirmation
+               setTimeout(async () => {
+                 try {
+                   const freshData = await window.supabaseDB.getChantiers();
+                   console.log('🔄 Données fraîches depuis Supabase:', freshData);
+                 } catch (e) {
+                   console.error('❌ Erreur rechargement:', e);
+                 }
+               }, 1000);
                
              } catch (error) {
                console.error('❌ Erreur ajout chantier:', error);
-               alert('Erreur lors de l\'ajout du chantier');
+               alert(`Erreur lors de l'ajout du chantier: ${error.message}`);
              }
            };
 
