@@ -57,56 +57,17 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-                 // Données initiales
+                 // Données initiales (vides pour forcer le chargement depuis Supabase)
          const initialUsers = [
-           { matricule: '100', nom: 'Said El Khalfaoui', role: 'admin', chantier: 'Admin' },
-           { matricule: '200', nom: 'Pointeur 1', role: 'pointeur', chantier: 'Chantier A' },
-           { matricule: '300', nom: 'Pointeur 2', role: 'pointeur', chantier: 'Chantier B' },
-           { matricule: '400', nom: 'Pointeur 3', role: 'pointeur', chantier: 'Chantier C' },
-           { matricule: '500', nom: 'Pointeur 4', role: 'pointeur', chantier: 'Chantier D' },
-           { matricule: '600', nom: 'Pointeur 5', role: 'pointeur', chantier: 'Chantier E' }
+           { matricule: '100', nom: 'Said El Khalfaoui', role: 'admin', chantier: 'Admin' }
          ];
 
          const initialChantiers = [];
 
          const initialArticles = [];
 
-         // Données initiales pour l'historique des mouvements
-         const initialHistorique = [
-           {
-             id: 1,
-             date: '2024-01-15T10:30:00',
-             type: 'entree',
-             articleId: 1,
-             quantite: 50,
-             userId: '200',
-             chantierId: 1,
-             notes: 'Livraison initiale',
-             uploadedFiles: ['bon_entree_1.pdf']
-           },
-           {
-             id: 2,
-             date: '2024-01-15T14:15:00',
-             type: 'sortie',
-             articleId: 1,
-             quantite: 20,
-             userId: '200',
-             chantierId: 1,
-             notes: 'Utilisation chantier',
-             uploadedFiles: []
-           },
-           {
-             id: 3,
-             date: '2024-01-16T09:00:00',
-             type: 'entree',
-             articleId: 4,
-             quantite: 30,
-             userId: '300',
-             chantierId: 2,
-             notes: 'Réapprovisionnement',
-             uploadedFiles: ['bon_entree_2.jpg']
-           }
-         ];
+         // Données initiales pour l'historique des mouvements (vide)
+         const initialHistorique = [];
 
         // Composant de connexion
         function Login({ onLogin, users }) {
@@ -1968,18 +1929,12 @@
                 
               } catch (error) {
                 console.error('❌ Erreur lors du chargement des données:', error);
-                // Fallback vers localStorage si Supabase échoue
-                const savedArticles = localStorage.getItem('articles');
-                const savedUsers = localStorage.getItem('users');
-                const savedCommandes = localStorage.getItem('commandes');
-                const savedChantiers = localStorage.getItem('chantiers');
-                const savedHistorique = localStorage.getItem('historique');
-
-                setArticles(savedArticles ? JSON.parse(savedArticles) : initialArticles);
-                setUsers(savedUsers ? JSON.parse(savedUsers) : initialUsers);
-                setCommandes(savedCommandes ? JSON.parse(savedCommandes) : []);
-                setChantiers(savedChantiers ? JSON.parse(savedChantiers) : initialChantiers);
-                setHistorique(savedHistorique ? JSON.parse(savedHistorique) : initialHistorique);
+                // Pas de fallback - forcer l'utilisation de Supabase uniquement
+                setArticles(initialArticles);
+                setUsers(initialUsers);
+                setCommandes([]);
+                setChantiers(initialChantiers);
+                setHistorique(initialHistorique);
               }
             };
             
