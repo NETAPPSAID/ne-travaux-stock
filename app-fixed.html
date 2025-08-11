@@ -18,7 +18,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js?v=fixed"></script>
     
     <!-- Supabase -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2?v=fixed"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"></script>
     
     <style>
         body {
@@ -31,153 +31,162 @@
     
     <!-- Supabase Client Intégré -->
     <script>
-        // Client Supabase intégré pour éviter les problèmes de chargement
-        console.log('🔧 Début du chargement du client Supabase...');
-        
-        // Vérifier que createClient est disponible
-        if (typeof createClient === 'undefined') {
-            console.error('❌ createClient non disponible - Supabase JS non chargé');
-            alert('Erreur: Bibliothèque Supabase non chargée. Vérifiez votre connexion internet.');
-        } else {
-            console.log('✅ createClient disponible');
-        }
-        
-        const SUPABASE_URL = 'https://sltmmvuxcanzhqakrtrw.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsdG1tdnV4Y2FuemhxYWtydHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDk2MDIsImV4cCI6MjA3MDIyNTYwMn0.zlue3-HiLaxu6Frg27pZokTCvW4rlkesT-1RxRyjoxU'
-
-        console.log('🔧 Configuration Supabase intégrée:', {
-            url: SUPABASE_URL,
-            key: SUPABASE_ANON_KEY ? 'PRÉSENT' : 'MANQUANT'
-        })
-
-        try {
-            // Créer le client Supabase
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-            console.log('✅ Client Supabase créé avec succès');
-
-            // Fonctions de base de données intégrées
-            window.supabaseDB = {
-                // ===== GESTION DES UTILISATEURS =====
-                async getUsers() {
-                    try {
-                        const { data, error } = await supabase
-                            .from('users')
-                            .select('*')
-                        console.log('📊 getUsers résultat:', { data: data?.length || 0, error });
-                        return data || []
-                    } catch (err) {
-                        console.error('❌ Erreur getUsers:', err);
-                        return []
-                    }
-                },
-
-                async getUserByMatricule(matricule) {
-                    try {
-                        console.log('🔍 Recherche utilisateur matricule:', matricule);
-                        const { data, error } = await supabase
-                            .from('users')
-                            .select('*')
-                            .eq('matricule', matricule)
-                        console.log('🔍 getUserByMatricule résultat:', { data: data?.length || 0, error });
-                        return { data, error }
-                    } catch (err) {
-                        console.error('❌ Erreur getUserByMatricule:', err);
-                        return { data: null, error: err }
-                    }
-                },
-
-                // ===== GESTION DES CHANTIERS =====
-                async getChantiers() {
-                    try {
-                        const { data, error } = await supabase
-                            .from('chantiers')
-                            .select('*')
-                        console.log('📊 getChantiers résultat:', { data: data?.length || 0, error });
-                        return data || []
-                    } catch (err) {
-                        console.error('❌ Erreur getChantiers:', err);
-                        return []
-                    }
-                },
-
-                async addChantier(chantier) {
-                    try {
-                        console.log('🏗️ Tentative d\'ajout chantier:', chantier)
-                        const { data, error } = await supabase
-                            .from('chantiers')
-                            .insert(chantier)
-                            .select()
-                        console.log('🏗️ Résultat ajout chantier:', { data, error })
-                        return { data, error }
-                    } catch (err) {
-                        console.error('❌ Erreur addChantier:', err);
-                        return { data: null, error: err }
-                    }
-                },
-
-                async deleteChantier(id) {
-                    try {
-                        const { data, error } = await supabase
-                            .from('chantiers')
-                            .delete()
-                            .eq('id', id)
-                            .select()
-                        return { data, error }
-                    } catch (err) {
-                        console.error('❌ Erreur deleteChantier:', err);
-                        return { data: null, error: err }
-                    }
-                },
-
-                // ===== GESTION DES ARTICLES =====
-                async getArticles() {
-                    try {
-                        const { data, error } = await supabase
-                            .from('articles')
-                            .select('*')
-                        console.log('📊 getArticles résultat:', { data: data?.length || 0, error });
-                        return data || []
-                    } catch (err) {
-                        console.error('❌ Erreur getArticles:', err);
-                        return []
-                    }
-                },
-
-                async addArticle(article) {
-                    try {
-                        const { data, error } = await supabase
-                            .from('articles')
-                            .insert(article)
-                            .select()
-                        return { data, error }
-                    } catch (err) {
-                        console.error('❌ Erreur addArticle:', err);
-                        return { data: null, error: err }
-                    }
-                },
-
-                async deleteArticle(id) {
-                    try {
-                        const { data, error } = await supabase
-                            .from('articles')
-                            .delete()
-                            .eq('id', id)
-                            .select()
-                        return { data, error }
-                    } catch (err) {
-                        console.error('❌ Erreur deleteArticle:', err);
-                        return { data: null, error: err }
-                    }
-                }
-            }
-
-            console.log('✅ Supabase client intégré chargé avec succès')
-            console.log('✅ window.supabaseDB disponible:', !!window.supabaseDB)
+        // Attendre que la page soit complètement chargée
+        window.addEventListener('load', function() {
+            console.log('🔧 Début du chargement du client Supabase...');
             
-        } catch (error) {
-            console.error('❌ Erreur lors de la création du client Supabase:', error);
-            alert('Erreur lors de l\'initialisation de la base de données: ' + error.message);
-        }
+            // Attendre un peu pour s'assurer que Supabase est chargé
+            setTimeout(() => {
+                // Vérifier que createClient est disponible
+                if (typeof window.supabase === 'undefined' && typeof createClient === 'undefined') {
+                    console.error('❌ Supabase non disponible - Bibliothèque non chargée');
+                    alert('Erreur: Bibliothèque Supabase non chargée. Vérifiez votre connexion internet.');
+                    return;
+                } else {
+                    console.log('✅ Supabase disponible');
+                }
+                
+                const SUPABASE_URL = 'https://sltmmvuxcanzhqakrtrw.supabase.co'
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsdG1tdnV4Y2FuemhxYWtydHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDk2MDIsImV4cCI6MjA3MDIyNTYwMn0.zlue3-HiLaxu6Frg27pZokTCvW4rlkesT-1RxRyjoxU'
+
+                console.log('🔧 Configuration Supabase intégrée:', {
+                    url: SUPABASE_URL,
+                    key: SUPABASE_ANON_KEY ? 'PRÉSENT' : 'MANQUANT'
+                })
+
+                try {
+                    // Utiliser la fonction disponible
+                    const createClientFn = window.supabase?.createClient || createClient;
+                    
+                    // Créer le client Supabase
+                    const supabase = createClientFn(SUPABASE_URL, SUPABASE_ANON_KEY)
+                    console.log('✅ Client Supabase créé avec succès');
+
+                    // Fonctions de base de données intégrées
+                    window.supabaseDB = {
+                        // ===== GESTION DES UTILISATEURS =====
+                        async getUsers() {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('users')
+                                    .select('*')
+                                console.log('📊 getUsers résultat:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ Erreur getUsers:', err);
+                                return []
+                            }
+                        },
+
+                        async getUserByMatricule(matricule) {
+                            try {
+                                console.log('🔍 Recherche utilisateur matricule:', matricule);
+                                const { data, error } = await supabase
+                                    .from('users')
+                                    .select('*')
+                                    .eq('matricule', matricule)
+                                console.log('🔍 getUserByMatricule résultat:', { data: data?.length || 0, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ Erreur getUserByMatricule:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        // ===== GESTION DES CHANTIERS =====
+                        async getChantiers() {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('chantiers')
+                                    .select('*')
+                                console.log('📊 getChantiers résultat:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ Erreur getChantiers:', err);
+                                return []
+                            }
+                        },
+
+                        async addChantier(chantier) {
+                            try {
+                                console.log('🏗️ Tentative d\'ajout chantier:', chantier)
+                                const { data, error } = await supabase
+                                    .from('chantiers')
+                                    .insert(chantier)
+                                    .select()
+                                console.log('🏗️ Résultat ajout chantier:', { data, error })
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ Erreur addChantier:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async deleteChantier(id) {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('chantiers')
+                                    .delete()
+                                    .eq('id', id)
+                                    .select()
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ Erreur deleteChantier:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        // ===== GESTION DES ARTICLES =====
+                        async getArticles() {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('articles')
+                                    .select('*')
+                                console.log('📊 getArticles résultat:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ Erreur getArticles:', err);
+                                return []
+                            }
+                        },
+
+                        async addArticle(article) {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('articles')
+                                    .insert(article)
+                                    .select()
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ Erreur addArticle:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async deleteArticle(id) {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('articles')
+                                    .delete()
+                                    .eq('id', id)
+                                    .select()
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ Erreur deleteArticle:', err);
+                                return { data: null, error: err }
+                            }
+                        }
+                    }
+
+                    console.log('✅ Supabase client intégré chargé avec succès')
+                    console.log('✅ window.supabaseDB disponible:', !!window.supabaseDB)
+                    
+                } catch (error) {
+                    console.error('❌ Erreur lors de la création du client Supabase:', error);
+                    alert('Erreur lors de l\'initialisation de la base de données: ' + error.message);
+                }
+            }, 1000); // Attendre 1 seconde
+        });
     </script>
     
     <!-- App Component -->
