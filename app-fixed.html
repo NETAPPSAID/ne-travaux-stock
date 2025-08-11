@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NE Travaux - Gestion de Stock - VERSION CORRIGÉE</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?v=fixed"></script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js?v=fixed"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js?v=fixed"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js?v=fixed"></script>
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2?v=fixed"></script>
+    <script src="supabase-client.js?v=fixed"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+    
+    <!-- App Component -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        console.log('🚀 NE TRAVAUX - VERSION CORRIGÉE - AUCUN CACHE LOCAL');
+
+        // Composant de connexion
+        function Login({ onLogin }) {
+            const [matricule, setMatricule] = useState('');
+            const [password, setPassword] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (matricule.trim() && password.trim()) {
+                    onLogin(matricule, password);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center p-4 relative overflow-hidden" style={{backgroundImage: 'url("./background.jpg.jpg")'}}>
+                    <div className="absolute inset-0 bg-black/50"></div>
+                    
+                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10 border-2 border-white/50">
+                        <div className="text-center mb-8">
+                            <div className="mb-4">
+                                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <img src="./logo.jpg.jpg" alt="Logo" className="w-16 h-16 object-contain rounded-full" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl" style={{display: 'none'}}>NEK</div>
+                                </div>
+                            </div>
+                            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">NAIT EL KHALFAOUI TRAVAUX</h1>
+                            <p className="text-white/80 text-lg">Gestion de Stock - VERSION CORRIGÉE</p>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label className="block text-white font-medium mb-2">Matricule</label>
+                                <input
+                                    type="text"
+                                    value={matricule}
+                                    onChange={(e) => setMatricule(e.target.value)}
+                                    className="w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500"
+                                    placeholder="Entrez votre matricule"
+                                    required
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-white font-medium mb-2">Mot de passe</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 bg-white/90 backdrop-blur-sm border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500"
+                                    placeholder="Entrez votre mot de passe"
+                                    required
+                                />
+                            </div>
+                            
+                            <button
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                            >
+                                Se connecter
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Composant principal de l'application - VERSION CORRIGÉE
+        function App() {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [activeTab, setActiveTab] = useState('stock');
+            const [users, setUsers] = useState([]);
+            const [chantiers, setChantiers] = useState([]);
+            const [articles, setArticles] = useState([]);
+            const [loading, setLoading] = useState(false);
+
+            // Fonction pour recharger TOUTES les données depuis Supabase
+            const reloadAllData = async () => {
+                try {
+                    console.log('🔄 VERSION CORRIGÉE - Rechargement complet des données depuis Supabase...');
+                    setLoading(true);
+                    
+                    // Vider d'abord les données locales
+                    setArticles([]);
+                    setUsers([]);
+                    setChantiers([]);
+                    
+                    // Attendre un peu pour s'assurer que les données sont vidées
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Recharger depuis Supabase
+                    const [articlesData, usersData, chantiersData] = await Promise.all([
+                        window.supabaseDB.getArticles(),
+                        window.supabaseDB.getUsers(),
+                        window.supabaseDB.getChantiers()
+                    ]);
+                    
+                    console.log('📊 VERSION CORRIGÉE - Données rechargées:', {
+                        articles: articlesData?.length || 0,
+                        users: usersData?.length || 0,
+                        chantiers: chantiersData?.length || 0
+                    });
+                    
+                    // Mettre à jour les états
+                    setArticles(articlesData || []);
+                    setUsers(usersData || []);
+                    setChantiers(chantiersData || []);
+                    setLoading(false);
+                    
+                } catch (error) {
+                    console.error('❌ VERSION CORRIGÉE - Erreur lors du rechargement:', error);
+                    setLoading(false);
+                }
+            };
+
+            // Charger les données au démarrage
+            useEffect(() => {
+                if (currentUser) {
+                    reloadAllData();
+                }
+            }, [currentUser]);
+
+            const handleLogin = async (matricule, password) => {
+                try {
+                    console.log('🔐 VERSION CORRIGÉE - Tentative de connexion pour matricule:', matricule);
+                    
+                    const { data: user, error } = await window.supabaseDB.getUserByMatricule(matricule);
+                    
+                    if (error) {
+                        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+                        alert('Erreur de connexion. Veuillez réessayer.');
+                        return;
+                    }
+                    
+                    console.log('📋 VERSION CORRIGÉE - Données utilisateur récupérées:', user);
+                    
+                    if (user && user.length > 0) {
+                        const userData = user[0];
+                        console.log('👤 VERSION CORRIGÉE - Données utilisateur:', userData);
+                        
+                        if (password === userData.password) {
+                            const formattedUser = {
+                                matricule: userData.matricule.toString(),
+                                nom: userData.nom,
+                                role: userData.role,
+                                chantier: userData.chantier_id ? `Chantier ${String.fromCharCode(64 + userData.chantier_id)}` : 'Admin'
+                            };
+                            
+                            setCurrentUser(formattedUser);
+                            console.log('✅ VERSION CORRIGÉE - Connexion réussie:', formattedUser);
+                        } else {
+                            console.log('❌ Mot de passe incorrect');
+                            alert('Mot de passe incorrect.');
+                        }
+                    } else {
+                        console.log('❌ Utilisateur non trouvé');
+                        alert('Matricule non trouvé.');
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la connexion:', error);
+                    alert('Erreur de connexion. Veuillez réessayer.');
+                }
+            };
+
+            const handleLogout = () => {
+                console.log('🚪 VERSION CORRIGÉE - Déconnexion - Nettoyage des données locales');
+                setCurrentUser(null);
+                setActiveTab('stock');
+                // Vider complètement les données locales
+                setArticles([]);
+                setUsers([]);
+                setChantiers([]);
+            };
+
+            // Fonctions de gestion des données - VERSION CORRIGÉE
+            const handleAddChantier = async () => {
+                try {
+                    console.log('🏗️ VERSION CORRIGÉE - Ajout chantier:', newChantier);
+                    
+                    const { data, error } = await window.supabaseDB.addChantier(newChantier);
+                    
+                    if (error) {
+                        console.error('Erreur lors de l\'ajout du chantier:', error);
+                        alert('Erreur lors de l\'ajout du chantier: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ VERSION CORRIGÉE - Chantier ajouté avec succès:', data);
+                    
+                    // Recharger les données depuis Supabase
+                    await reloadAllData();
+                    
+                    // Réinitialiser le formulaire
+                    setNewChantier({ nom: '', description: '', icone: '🏗️' });
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'ajout du chantier:', error);
+                    alert('Erreur lors de l\'ajout du chantier: ' + error.message);
+                }
+            };
+
+            const handleDeleteChantier = async (id) => {
+                try {
+                    console.log('🗑️ VERSION CORRIGÉE - Suppression chantier ID:', id);
+                    
+                    const { data, error } = await window.supabaseDB.deleteChantier(id);
+                    
+                    if (error) {
+                        console.error('Erreur lors de la suppression du chantier:', error);
+                        alert('Erreur lors de la suppression du chantier: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ VERSION CORRIGÉE - Chantier supprimé avec succès:', data);
+                    
+                    // Recharger les données depuis Supabase
+                    await reloadAllData();
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la suppression du chantier:', error);
+                    alert('Erreur lors de la suppression du chantier: ' + error.message);
+                }
+            };
+
+            const handleAddArticle = async () => {
+                try {
+                    console.log('📦 VERSION CORRIGÉE - Ajout article:', newArticle);
+                    
+                    const { data, error } = await window.supabaseDB.addArticle(newArticle);
+                    
+                    if (error) {
+                        console.error('Erreur lors de l\'ajout de l\'article:', error);
+                        alert('Erreur lors de l\'ajout de l\'article: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ VERSION CORRIGÉE - Article ajouté avec succès:', data);
+                    
+                    // Recharger les données depuis Supabase
+                    await reloadAllData();
+                    
+                    // Réinitialiser le formulaire
+                    setNewArticle({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'ajout de l\'article:', error);
+                    alert('Erreur lors de l\'ajout de l\'article: ' + error.message);
+                }
+            };
+
+            const handleDeleteArticle = async (id) => {
+                try {
+                    console.log('🗑️ VERSION CORRIGÉE - Suppression article ID:', id);
+                    
+                    const { data, error } = await window.supabaseDB.deleteArticle(id);
+                    
+                    if (error) {
+                        console.error('Erreur lors de la suppression de l\'article:', error);
+                        alert('Erreur lors de la suppression de l\'article: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ VERSION CORRIGÉE - Article supprimé avec succès:', data);
+                    
+                    // Recharger les données depuis Supabase
+                    await reloadAllData();
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la suppression de l\'article:', error);
+                    alert('Erreur lors de la suppression de l\'article: ' + error.message);
+                }
+            };
+
+            // Composant Stock
+            function Stock() {
+                const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                const filteredArticles = currentUser.role === 'admin' 
+                    ? articles 
+                    : articles.filter(article => {
+                        const chantier = chantiers.find(c => c.id === article.chantier_id);
+                        return chantier && chantier.nom === userChantier;
+                    });
+
+                return (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-gray-800">
+                                {currentUser.role === 'admin' ? 'Stock Global' : `Stock - ${userChantier}`}
+                            </h2>
+                            {currentUser.role === 'admin' && (
+                                <button
+                                    onClick={() => setActiveTab('admin')}
+                                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                                >
+                                    Administration
+                                </button>
+                            )}
+                        </div>
+
+                        {loading && (
+                            <div className="text-center py-8">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                                <p className="mt-4 text-gray-600">Chargement des données...</p>
+                            </div>
+                        )}
+
+                        {!loading && (
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {filteredArticles.map(article => {
+                                        const chantier = chantiers.find(c => c.id === article.chantier_id);
+                                        return (
+                                            <div key={article.id} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center space-x-3">
+                                                        <span className="text-2xl">{article.icone}</span>
+                                                        <div>
+                                                            <h3 className="font-semibold text-gray-800">{article.nom}</h3>
+                                                            {currentUser.role === 'admin' && chantier && (
+                                                                <p className="text-sm text-gray-600">{chantier.nom}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-2xl font-bold text-blue-600">{article.quantite}</div>
+                                                        <div className="text-sm text-gray-500">en stock</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {filteredArticles.length === 0 && (
+                                    <div className="text-center py-12">
+                                        <div className="text-6xl mb-4">📦</div>
+                                        <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucun article en stock</h3>
+                                        <p className="text-gray-500">Les articles apparaîtront ici une fois ajoutés</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                );
+            }
+
+            // Composant Admin - VERSION CORRIGÉE
+            function Admin() {
+                const [newChantier, setNewChantier] = useState({ nom: '', description: '', icone: '🏗️' });
+                const [newArticle, setNewArticle] = useState({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
+
+                return (
+                    <div className="space-y-8">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-gray-800">Administration - VERSION CORRIGÉE</h2>
+                            <button
+                                onClick={() => setActiveTab('stock')}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                            >
+                                Retour au Stock
+                            </button>
+                        </div>
+
+                        {/* Gestion des chantiers */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <h3 className="text-xl font-semibold mb-4">Gestion des Chantiers</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="Nom du chantier"
+                                    value={newChantier.nom}
+                                    onChange={(e) => setNewChantier({...newChantier, nom: e.target.value})}
+                                    className="px-4 py-2 border rounded-lg"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Description"
+                                    value={newChantier.description}
+                                    onChange={(e) => setNewChantier({...newChantier, description: e.target.value})}
+                                    className="px-4 py-2 border rounded-lg"
+                                />
+                            </div>
+                            
+                            <button
+                                onClick={handleAddChantier}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                            >
+                                Ajouter un chantier
+                            </button>
+
+                            {loading && (
+                                <div className="mt-6 text-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Chargement...</p>
+                                </div>
+                            )}
+
+                            {!loading && (
+                                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {chantiers.map(chantier => (
+                                        <div key={chantier.id} className="border rounded-lg p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-semibold">{chantier.nom}</h4>
+                                                    <p className="text-sm text-gray-600">{chantier.description}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDeleteChantier(chantier.id)}
+                                                    className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Gestion des articles */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <h3 className="text-xl font-semibold mb-4">Gestion des Articles</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="Nom de l'article"
+                                    value={newArticle.nom}
+                                    onChange={(e) => setNewArticle({...newArticle, nom: e.target.value})}
+                                    className="px-4 py-2 border rounded-lg"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Quantité initiale"
+                                    value={newArticle.quantite}
+                                    onChange={(e) => setNewArticle({...newArticle, quantite: parseInt(e.target.value) || 0})}
+                                    className="px-4 py-2 border rounded-lg"
+                                />
+                                <select
+                                    value={newArticle.chantier_id}
+                                    onChange={(e) => setNewArticle({...newArticle, chantier_id: e.target.value})}
+                                    className="px-4 py-2 border rounded-lg"
+                                >
+                                    <option value="">Sélectionner un chantier</option>
+                                    {chantiers.map(chantier => (
+                                        <option key={chantier.id} value={chantier.id}>{chantier.nom}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <button
+                                onClick={handleAddArticle}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                            >
+                                Ajouter un article
+                            </button>
+
+                            {loading && (
+                                <div className="mt-6 text-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Chargement...</p>
+                                </div>
+                            )}
+
+                            {!loading && (
+                                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {articles.map(article => {
+                                        const chantier = chantiers.find(c => c.id === article.chantier_id);
+                                        return (
+                                            <div key={article.id} className="border rounded-lg p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{article.nom}</h4>
+                                                        <p className="text-sm text-gray-600">Quantité: {article.quantite}</p>
+                                                        {chantier && <p className="text-sm text-gray-500">{chantier.nom}</p>}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteArticle(article.id)}
+                                                        className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            // Interface principale
+            if (!currentUser) {
+                return <Login onLogin={handleLogin} />;
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    {/* Header */}
+                    <header className="bg-white shadow-sm border-b">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center py-4">
+                                <div className="flex items-center space-x-4">
+                                    <img src="./logo.jpg.jpg" alt="Logo" className="w-10 h-10 rounded-full" />
+                                    <div>
+                                        <h1 className="text-xl font-bold text-gray-900">NE Travaux</h1>
+                                        <p className="text-sm text-gray-600">Gestion de Stock - VERSION CORRIGÉE</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <span className="text-sm text-gray-600">
+                                        Connecté en tant que <span className="font-semibold">{currentUser.nom}</span>
+                                    </span>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                                    >
+                                        Déconnexion
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        {activeTab === 'stock' ? <Stock /> : <Admin />}
+                    </main>
+                </div>
+            );
+        }
+
+        // Rendu de l'application
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
