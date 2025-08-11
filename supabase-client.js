@@ -185,6 +185,18 @@ window.supabaseDB = {
   async syncWithSupabase() {
     console.log('🔄 Démarrage de la synchronisation temps réel...')
     
+    // Écouter les changements sur les chantiers
+    supabase
+      .channel('chantier_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'chantiers' },
+        (payload) => {
+          console.log('🔄 Changement détecté sur chantiers:', payload)
+          window.dispatchEvent(new CustomEvent('chantier-updated', { detail: payload }))
+        }
+      )
+      .subscribe()
+
     // Écouter les changements sur les articles
     supabase
       .channel('stock_changes')

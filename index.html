@@ -1943,6 +1943,15 @@
 
           // Écouter les événements de synchronisation temps réel
           useEffect(() => {
+            const handleChantierUpdate = (event) => {
+              console.log('🔄 Mise à jour des chantiers reçue:', event.detail);
+              // Recharger les chantiers si nécessaire
+              window.supabaseDB.getChantiers().then(data => {
+                console.log('🔄 Chantiers rechargés depuis Supabase:', data);
+                setChantiers(data);
+              });
+            };
+
             const handleStockUpdate = (event) => {
               console.log('🔄 Mise à jour du stock reçue:', event.detail);
               // Recharger les articles si nécessaire
@@ -1967,11 +1976,13 @@
               });
             };
 
+            window.addEventListener('chantier-updated', handleChantierUpdate);
             window.addEventListener('stock-updated', handleStockUpdate);
             window.addEventListener('movement-updated', handleMovementUpdate);
             window.addEventListener('commande-updated', handleCommandeUpdate);
 
             return () => {
+              window.removeEventListener('chantier-updated', handleChantierUpdate);
               window.removeEventListener('stock-updated', handleStockUpdate);
               window.removeEventListener('movement-updated', handleMovementUpdate);
               window.removeEventListener('commande-updated', handleCommandeUpdate);
