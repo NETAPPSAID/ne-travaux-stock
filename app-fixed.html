@@ -19,7 +19,6 @@
     
     <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2?v=fixed"></script>
-    <script src="supabase-client.js?v=fixed"></script>
     
     <style>
         body {
@@ -30,11 +29,99 @@
 <body class="bg-gray-50">
     <div id="root"></div>
     
+    <!-- Supabase Client Intégré -->
+    <script>
+        // Client Supabase intégré pour éviter les problèmes de chargement
+        const SUPABASE_URL = 'https://sltmmvuxcanzhqakrtrw.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsdG1tdnV4Y2FuemhxYWtydHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDk2MDIsImV4cCI6MjA3MDIyNTYwMn0.zlue3-HiLaxu6Frg27pZokTCvW4rlkesT-1RxRyjoxU'
+
+        console.log('🔧 Configuration Supabase intégrée:', {
+            url: SUPABASE_URL,
+            key: SUPABASE_ANON_KEY ? 'PRÉSENT' : 'MANQUANT'
+        })
+
+        // Créer le client Supabase
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+        // Fonctions de base de données intégrées
+        window.supabaseDB = {
+            // ===== GESTION DES UTILISATEURS =====
+            async getUsers() {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                return data || []
+            },
+
+            async getUserByMatricule(matricule) {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('matricule', matricule)
+                return { data, error }
+            },
+
+            // ===== GESTION DES CHANTIERS =====
+            async getChantiers() {
+                const { data, error } = await supabase
+                    .from('chantiers')
+                    .select('*')
+                return data || []
+            },
+
+            async addChantier(chantier) {
+                console.log('🏗️ Tentative d\'ajout chantier:', chantier)
+                const { data, error } = await supabase
+                    .from('chantiers')
+                    .insert(chantier)
+                    .select()
+                console.log('🏗️ Résultat ajout chantier:', { data, error })
+                return { data, error }
+            },
+
+            async deleteChantier(id) {
+                const { data, error } = await supabase
+                    .from('chantiers')
+                    .delete()
+                    .eq('id', id)
+                    .select()
+                return { data, error }
+            },
+
+            // ===== GESTION DES ARTICLES =====
+            async getArticles() {
+                const { data, error } = await supabase
+                    .from('articles')
+                    .select('*')
+                return data || []
+            },
+
+            async addArticle(article) {
+                const { data, error } = await supabase
+                    .from('articles')
+                    .insert(article)
+                    .select()
+                return { data, error }
+            },
+
+            async deleteArticle(id) {
+                const { data, error } = await supabase
+                    .from('articles')
+                    .delete()
+                    .eq('id', id)
+                    .select()
+                return { data, error }
+            }
+        }
+
+        console.log('✅ Supabase client intégré chargé avec succès')
+    </script>
+    
     <!-- App Component -->
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        console.log('🚀 NE TRAVAUX - VERSION CORRIGÉE - AUCUN CACHE LOCAL');
+        console.log('🚀 NE TRAVAUX - VERSION CORRIGÉE - SUPABASE INTÉGRÉ');
 
         // Composant de connexion
         function Login({ onLogin }) {
@@ -159,6 +246,13 @@
             const handleLogin = async (matricule, password) => {
                 try {
                     console.log('🔐 VERSION CORRIGÉE - Tentative de connexion pour matricule:', matricule);
+                    
+                    // Vérifier que supabaseDB est disponible
+                    if (!window.supabaseDB) {
+                        console.error('❌ supabaseDB non disponible');
+                        alert('Erreur: Connexion à la base de données impossible');
+                        return;
+                    }
                     
                     const { data, error } = await window.supabaseDB.getUserByMatricule(matricule);
                     
