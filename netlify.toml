@@ -3,12 +3,17 @@
 
 [[redirects]]
   from = "/"
-  to = "/app.html"
+  to = "/main.html"
   status = 200
 
 [[redirects]]
   from = "/index.html"
-  to = "/app.html"
+  to = "/main.html"
+  status = 200
+
+[[redirects]]
+  from = "/app.html"
+  to = "/main.html"
   status = 200
 
 [build.environment]
