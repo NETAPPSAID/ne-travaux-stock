@@ -2527,8 +2527,9 @@
           );
         }
 
-        // Rendu de l'application
-        ReactDOM.render(<App />, document.getElementById('root'));
+        // Rendu de l'application avec React 18
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
     
     <!-- Service Worker Registration -->
