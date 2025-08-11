@@ -1,5 +1,0 @@
-[33m27138f1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Suppression définitive de index.html - Force l'utilisation de app.html
-[33meecf5ff[m Nettoyage - Suppression des fichiers de test et debug inutiles
-[33m10160ff[m Configuration Netlify - Redirection automatique vers app.html
-[33m5000ca2[m Version 5.0 - Nouveau fichier app.html - Solution radicale pour éviter le cache
-[33m8fd6f48[m Version 4.0 - Remplacement complet du fichier index.html - Fichier nouveau sans données hardcodées

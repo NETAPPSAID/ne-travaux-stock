@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NE Travaux - Gestion de Stock V7 - VERSION FINALE</title>
+    <title>NE Travaux - Gestion de Stock - NOUVELLE VERSION</title>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3B82F6">
     
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?v=7"></script>
+    <script src="https://cdn.tailwindcss.com?v=clean"></script>
     
     <!-- React -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js?v=7"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js?v=7"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js?v=7"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js?v=clean"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js?v=clean"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js?v=clean"></script>
     
     <!-- Supabase -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2?v=7"></script>
-    <script src="supabase-client.js?v=7"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2?v=clean"></script>
+    <script src="supabase-client.js?v=clean"></script>
     
     <style>
         body {
@@ -34,7 +34,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        console.log('🚀 NE TRAVAUX - VERSION 7.0 - VERSION FINALE - SUPRESSION COMPLÈTE DU CACHE');
+        console.log('🚀 NE TRAVAUX - NOUVELLE VERSION - AUCUNE DONNÉE HARCODÉE');
 
         // Composant de connexion
         function Login({ onLogin }) {
@@ -61,7 +61,7 @@
                                 </div>
                             </div>
                             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">NAIT EL KHALFAOUI TRAVAUX</h1>
-                            <p className="text-white/80 text-lg">Gestion de Stock - V7 FINALE</p>
+                            <p className="text-white/80 text-lg">Gestion de Stock - NOUVELLE VERSION</p>
                         </div>
                         
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,11 +110,11 @@
             const [articles, setArticles] = useState([]);
             const [loading, setLoading] = useState(true);
 
-            // Charger les données au démarrage - VERSION FINALE
+            // Charger les données au démarrage - NOUVELLE APPROCHE
             useEffect(() => {
                 const loadData = async () => {
                     try {
-                        console.log('🚀 VERSION 7.0 - Début du chargement des données depuis Supabase uniquement...');
+                        console.log('🚀 NOUVELLE VERSION - Début du chargement des données depuis Supabase uniquement...');
                         
                         // Vérifier que supabaseDB est disponible
                         if (!window.supabaseDB) {
@@ -130,7 +130,7 @@
                             window.supabaseDB.getChantiers()
                         ]);
                         
-                        console.log('📊 VERSION 7.0 - Données récupérées depuis Supabase:', {
+                        console.log('📊 NOUVELLE VERSION - Données récupérées depuis Supabase:', {
                             articles: articlesData?.length || 0,
                             users: usersData?.length || 0,
                             chantiers: chantiersData?.length || 0
@@ -142,7 +142,7 @@
                         setChantiers(chantiersData || []);
                         setLoading(false);
                         
-                        console.log('✅ VERSION 7.0 - Données chargées avec succès depuis Supabase uniquement');
+                        console.log('✅ NOUVELLE VERSION - Données chargées avec succès depuis Supabase uniquement');
                         
                         // Démarrer la synchronisation temps réel
                         if (window.supabaseDB.syncWithSupabase) {
@@ -150,7 +150,7 @@
                         }
                         
                     } catch (error) {
-                        console.error('❌ VERSION 7.0 - Erreur lors du chargement des données:', error);
+                        console.error('❌ NOUVELLE VERSION - Erreur lors du chargement des données:', error);
                         setLoading(false);
                         alert('Erreur de connexion à la base de données: ' + error.message);
                     }
@@ -160,17 +160,17 @@
 
                 // Écouteur pour les mises à jour en temps réel
                 const handleChantierUpdate = (event) => {
-                    console.log('🔄 VERSION 7.0 - Mise à jour des chantiers reçue:', event.detail);
+                    console.log('🔄 NOUVELLE VERSION - Mise à jour des chantiers reçue:', event.detail);
                     window.supabaseDB.getChantiers().then(data => {
-                        console.log('🔄 VERSION 7.0 - Chantiers rechargés depuis Supabase:', data);
+                        console.log('🔄 NOUVELLE VERSION - Chantiers rechargés depuis Supabase:', data);
                         setChantiers(data || []);
                     });
                 };
 
                 const handleArticleUpdate = (event) => {
-                    console.log('🔄 VERSION 7.0 - Mise à jour des articles reçue:', event.detail);
+                    console.log('🔄 NOUVELLE VERSION - Mise à jour des articles reçue:', event.detail);
                     window.supabaseDB.getArticles().then(data => {
-                        console.log('🔄 VERSION 7.0 - Articles rechargés depuis Supabase:', data);
+                        console.log('🔄 NOUVELLE VERSION - Articles rechargés depuis Supabase:', data);
                         setArticles(data || []);
                     });
                 };
@@ -187,7 +187,7 @@
 
             const handleLogin = async (matricule, password) => {
                 try {
-                    console.log('🔐 VERSION 7.0 - Tentative de connexion pour matricule:', matricule);
+                    console.log('🔐 NOUVELLE VERSION - Tentative de connexion pour matricule:', matricule);
                     
                     const { data: user, error } = await window.supabaseDB.getUserByMatricule(matricule);
                     
@@ -197,11 +197,11 @@
                         return;
                     }
                     
-                    console.log('📋 VERSION 7.0 - Données utilisateur récupérées:', user);
+                    console.log('📋 NOUVELLE VERSION - Données utilisateur récupérées:', user);
                     
                     if (user && user.length > 0) {
                         const userData = user[0];
-                        console.log('👤 VERSION 7.0 - Données utilisateur:', userData);
+                        console.log('👤 NOUVELLE VERSION - Données utilisateur:', userData);
                         
                         if (password === userData.password) {
                             const formattedUser = {
@@ -212,7 +212,7 @@
                             };
                             
                             setCurrentUser(formattedUser);
-                            console.log('✅ VERSION 7.0 - Connexion réussie:', formattedUser);
+                            console.log('✅ NOUVELLE VERSION - Connexion réussie:', formattedUser);
                         } else {
                             console.log('❌ Mot de passe incorrect');
                             alert('Mot de passe incorrect.');
@@ -294,7 +294,7 @@
                 );
             }
 
-            // Composant Admin simplifié - VERSION FINALE
+            // Composant Admin simplifié - NOUVELLE VERSION
             function Admin() {
                 const [newChantier, setNewChantier] = useState({ nom: '', description: '', icone: '🏗️' });
                 const [newArticle, setNewArticle] = useState({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
@@ -302,9 +302,9 @@
                 const handleAddChantier = async () => {
                     if (newChantier.nom.trim()) {
                         try {
-                            console.log('🏗️ VERSION 7.0 - Début ajout chantier:', newChantier);
+                            console.log('🏗️ NOUVELLE VERSION - Début ajout chantier:', newChantier);
                             const result = await window.supabaseDB.addChantier(newChantier);
-                            console.log('🏗️ VERSION 7.0 - Réponse Supabase:', result);
+                            console.log('🏗️ NOUVELLE VERSION - Réponse Supabase:', result);
                             
                             if (result.error) {
                                 alert('Erreur lors de l\'ajout du chantier: ' + result.error.message);
@@ -313,11 +313,11 @@
                                 setNewChantier({ nom: '', description: '', icone: '🏗️' });
                                 // Recharger les chantiers depuis Supabase
                                 const newChantiers = await window.supabaseDB.getChantiers();
-                                console.log('🔄 VERSION 7.0 - Chantiers rechargés:', newChantiers);
+                                console.log('🔄 NOUVELLE VERSION - Chantiers rechargés:', newChantiers);
                                 setChantiers(newChantiers || []);
                             }
                         } catch (error) {
-                            console.error('❌ VERSION 7.0 - Erreur ajout chantier:', error);
+                            console.error('❌ NOUVELLE VERSION - Erreur ajout chantier:', error);
                             alert('Erreur: ' + error.message);
                         }
                     }
@@ -326,9 +326,9 @@
                 const handleDeleteChantier = async (chantierId) => {
                     if (confirm('Êtes-vous sûr de vouloir supprimer ce chantier ?')) {
                         try {
-                            console.log('🗑️ VERSION 7.0 - Début suppression chantier:', chantierId);
+                            console.log('🗑️ NOUVELLE VERSION - Début suppression chantier:', chantierId);
                             const result = await window.supabaseDB.deleteChantier(chantierId);
-                            console.log('🗑️ VERSION 7.0 - Réponse suppression:', result);
+                            console.log('🗑️ NOUVELLE VERSION - Réponse suppression:', result);
                             
                             if (result.error) {
                                 alert('Erreur lors de la suppression du chantier: ' + result.error.message);
@@ -336,11 +336,11 @@
                                 alert('Chantier supprimé avec succès !');
                                 // Recharger les chantiers depuis Supabase
                                 const newChantiers = await window.supabaseDB.getChantiers();
-                                console.log('🔄 VERSION 7.0 - Chantiers rechargés après suppression:', newChantiers);
+                                console.log('🔄 NOUVELLE VERSION - Chantiers rechargés après suppression:', newChantiers);
                                 setChantiers(newChantiers || []);
                             }
                         } catch (error) {
-                            console.error('❌ VERSION 7.0 - Erreur suppression chantier:', error);
+                            console.error('❌ NOUVELLE VERSION - Erreur suppression chantier:', error);
                             alert('Erreur: ' + error.message);
                         }
                     }
@@ -349,12 +349,12 @@
                 const handleAddArticle = async () => {
                     if (newArticle.nom.trim() && newArticle.chantier_id) {
                         try {
-                            console.log('📦 VERSION 7.0 - Début ajout article:', newArticle);
+                            console.log('📦 NOUVELLE VERSION - Début ajout article:', newArticle);
                             const result = await window.supabaseDB.addArticle({
                                 ...newArticle,
                                 chantier_id: parseInt(newArticle.chantier_id)
                             });
-                            console.log('📦 VERSION 7.0 - Réponse Supabase:', result);
+                            console.log('📦 NOUVELLE VERSION - Réponse Supabase:', result);
                             
                             if (result.error) {
                                 alert('Erreur lors de l\'ajout de l\'article: ' + result.error.message);
@@ -363,11 +363,11 @@
                                 setNewArticle({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
                                 // Recharger les articles depuis Supabase
                                 const newArticles = await window.supabaseDB.getArticles();
-                                console.log('🔄 VERSION 7.0 - Articles rechargés:', newArticles);
+                                console.log('🔄 NOUVELLE VERSION - Articles rechargés:', newArticles);
                                 setArticles(newArticles || []);
                             }
                         } catch (error) {
-                            console.error('❌ VERSION 7.0 - Erreur ajout article:', error);
+                            console.error('❌ NOUVELLE VERSION - Erreur ajout article:', error);
                             alert('Erreur: ' + error.message);
                         }
                     }
@@ -376,9 +376,9 @@
                 const handleDeleteArticle = async (articleId) => {
                     if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
                         try {
-                            console.log('🗑️ VERSION 7.0 - Début suppression article:', articleId);
+                            console.log('🗑️ NOUVELLE VERSION - Début suppression article:', articleId);
                             const result = await window.supabaseDB.deleteArticle(articleId);
-                            console.log('🗑️ VERSION 7.0 - Réponse suppression article:', result);
+                            console.log('🗑️ NOUVELLE VERSION - Réponse suppression article:', result);
                             
                             if (result.error) {
                                 alert('Erreur lors de la suppression de l\'article: ' + result.error.message);
@@ -386,11 +386,11 @@
                                 alert('Article supprimé avec succès !');
                                 // Recharger les articles depuis Supabase
                                 const newArticles = await window.supabaseDB.getArticles();
-                                console.log('🔄 VERSION 7.0 - Articles rechargés après suppression:', newArticles);
+                                console.log('🔄 NOUVELLE VERSION - Articles rechargés après suppression:', newArticles);
                                 setArticles(newArticles || []);
                             }
                         } catch (error) {
-                            console.error('❌ VERSION 7.0 - Erreur suppression article:', error);
+                            console.error('❌ NOUVELLE VERSION - Erreur suppression article:', error);
                             alert('Erreur: ' + error.message);
                         }
                     }
@@ -398,7 +398,7 @@
 
                 return (
                     <div className="space-y-8">
-                        <h2 className="text-2xl font-bold text-gray-800">Administration - VERSION 7.0</h2>
+                        <h2 className="text-2xl font-bold text-gray-800">Administration - NOUVELLE VERSION</h2>
 
                         {/* Gestion des chantiers */}
                         <div className="bg-white rounded-lg shadow-md p-6">
@@ -518,7 +518,7 @@
                     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">VERSION 7.0 - Chargement des données depuis Supabase...</p>
+                            <p className="mt-4 text-gray-600">NOUVELLE VERSION - Chargement des données depuis Supabase...</p>
                         </div>
                     </div>
                 );
@@ -536,7 +536,7 @@
                             <div className="flex justify-between items-center h-16">
                                 <div className="flex items-center">
                                     <img src="./logo.jpg.jpg" alt="Logo" className="h-8 w-8 mr-3" onError={(e) => { e.target.style.display = 'none'; }} />
-                                    <h1 className="text-xl font-semibold text-gray-900">NE Travaux - Gestion de Stock V7 FINALE</h1>
+                                    <h1 className="text-xl font-semibold text-gray-900">NE Travaux - Gestion de Stock NOUVELLE VERSION</h1>
                                 </div>
                                 
                                 <div className="flex items-center space-x-4">
