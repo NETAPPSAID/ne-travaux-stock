@@ -2193,7 +2193,6 @@
                const chantier = {
                  nom: newChantier.nom,
                  description: newChantier.description,
-                 statut: newChantier.statut || 'actif',
                  icone: newChantier.icone || '🏗️'
                };
                
@@ -2294,7 +2293,36 @@
                  return;
                }
                
-               // Supprimer dans Supabase
+               // Vérifier s'il y a des articles associés à ce chantier
+               const articlesAssocies = articles.filter(article => article.chantier_id === chantierId);
+               if (articlesAssocies.length > 0) {
+                 const confirmSuppression = confirm(
+                   `Ce chantier contient ${articlesAssocies.length} article(s). ` +
+                   `Voulez-vous vraiment le supprimer ? Tous les articles associés seront également supprimés.`
+                 );
+                 
+                 if (!confirmSuppression) {
+                   console.log('❌ Suppression annulée par l\'utilisateur');
+                   return;
+                 }
+                 
+                 // Supprimer d'abord tous les articles associés
+                 console.log('🗑️ Suppression des articles associés...');
+                 for (const article of articlesAssocies) {
+                   const resultArticle = await window.supabaseDB.deleteArticle(article.id);
+                   if (resultArticle.error) {
+                     console.error('❌ Erreur suppression article:', resultArticle.error);
+                     alert(`Erreur lors de la suppression de l'article ${article.nom}: ${resultArticle.error.message}`);
+                     return;
+                   }
+                 }
+                 
+                 // Mettre à jour l'état local des articles
+                 setArticles(articles.filter(article => article.chantier_id !== chantierId));
+                 console.log('✅ Articles associés supprimés');
+               }
+               
+               // Supprimer le chantier dans Supabase
                const result = await window.supabaseDB.deleteChantier(chantierId);
                console.log('🏗️ Résultat suppression Supabase:', result);
                

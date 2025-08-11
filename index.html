@@ -1239,27 +1239,39 @@
              }
            };
 
-           const handleAddArticle = () => {
+           const handleAddArticle = async () => {
              if (newArticle.nom.trim() && newArticle.quantite >= 0) {
-               onAddArticle(newArticle);
-               setNewArticle({ nom: '', icone: '📦', quantite: 0, chantierId: 1 });
-               setShowAddArticleForm(false);
+               try {
+                 await onAddArticle(newArticle);
+                 setNewArticle({ nom: '', icone: '📦', quantite: 0, chantierId: 1 });
+                 setShowAddArticleForm(false);
+               } catch (error) {
+                 console.error('Erreur lors de l\'ajout de l\'article:', error);
+               }
              } else {
                alert('Veuillez remplir tous les champs correctement.');
              }
            };
 
-           const handleDeleteArticle = (articleId) => {
+           const handleDeleteArticle = async (articleId) => {
              if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
-               onDeleteArticle(articleId);
+               try {
+                 await onDeleteArticle(articleId);
+               } catch (error) {
+                 console.error('Erreur lors de la suppression de l\'article:', error);
+               }
              }
            };
 
-           const handleAddChantier = () => {
+           const handleAddChantier = async () => {
              if (newChantier.nom.trim()) {
-               onAddChantier(newChantier);
-               setNewChantier({ nom: '', description: '', statut: 'actif' });
-               setShowAddChantierForm(false);
+               try {
+                 await onAddChantier(newChantier);
+                 setNewChantier({ nom: '', description: '', icone: '🏗️' });
+                 setShowAddChantierForm(false);
+               } catch (error) {
+                 console.error('Erreur lors de l\'ajout du chantier:', error);
+               }
              } else {
                alert('Veuillez entrer un nom de chantier.');
              }
@@ -1270,9 +1282,13 @@
              setEditingChantier(null);
            };
 
-           const handleDeleteChantier = (chantierId) => {
+           const handleDeleteChantier = async (chantierId) => {
              if (window.confirm('Êtes-vous sûr de vouloir supprimer ce chantier ?')) {
-               onDeleteChantier(chantierId);
+               try {
+                 await onDeleteChantier(chantierId);
+               } catch (error) {
+                 console.error('Erreur lors de la suppression du chantier:', error);
+               }
              }
            };
 
@@ -2163,21 +2179,134 @@
              setUsers(users.filter(user => user.matricule !== matricule));
            };
 
-           const addArticle = (newArticle) => {
-             const article = {
-               id: Date.now(),
-               nom: newArticle.nom,
-               icone: newArticle.icone,
-               quantite: newArticle.quantite,
-               entree: 0,
-               sortie: 0,
-               chantierId: newArticle.chantierId || 1 // Par défaut chantier 1
-             };
-             setArticles([...articles, article]);
+           const addArticle = async (newArticle) => {
+             try {
+               console.log('📦 Début ajout article:', newArticle);
+               
+               // Préparer l'article sans ID (Supabase l'auto-génère)
+               const article = {
+                 nom: newArticle.nom,
+                 icone: newArticle.icone,
+                 quantite: newArticle.quantite,
+                 chantier_id: newArticle.chantierId || 1 // Par défaut chantier 1
+               };
+               
+               console.log('📦 Article préparé:', article);
+               
+               // Vérifier que supabaseDB est disponible
+               if (!window.supabaseDB) {
+                 console.error('❌ supabaseDB non disponible');
+                 alert('Erreur: Connexion à la base de données non disponible');
+                 return;
+               }
+               
+               // Ajouter à Supabase
+               console.log('📦 Envoi vers Supabase...');
+               const result = await window.supabaseDB.addArticle(article);
+               console.log('📦 Réponse Supabase:', result);
+               
+               if (result.error) {
+                 console.error('❌ Erreur ajout article:', result.error);
+                 alert(`Erreur lors de l'ajout de l'article: ${result.error.message || result.error}`);
+                 return;
+               }
+               
+               if (!result.data || result.data.length === 0) {
+                 console.error('❌ Aucune donnée retournée par Supabase');
+                 alert('Erreur: Aucune donnée retournée par la base de données');
+                 return;
+               }
+               
+               console.log('✅ Article ajouté avec succès:', result.data);
+               
+               // Mettre à jour l'état local avec les données de Supabase (incluant l'ID)
+               const articleWithId = result.data[0];
+               const updatedArticles = [...articles, articleWithId];
+               setArticles(updatedArticles);
+               console.log('✅ État local mis à jour avec ID:', articleWithId);
+               
+               // Recharger les données depuis Supabase pour confirmation
+               setTimeout(async () => {
+                 try {
+                   const freshData = await window.supabaseDB.getArticles();
+                   console.log('🔄 Données fraîches depuis Supabase:', freshData);
+                   // Mettre à jour avec les données fraîches pour s'assurer de la synchronisation
+                   setArticles(freshData);
+                 } catch (e) {
+                   console.error('❌ Erreur rechargement:', e);
+                 }
+               }, 500);
+               
+             } catch (error) {
+               console.error('❌ Erreur ajout article:', error);
+               alert(`Erreur lors de l'ajout de l'article: ${error.message}`);
+             }
            };
 
-           const deleteArticle = (articleId) => {
-             setArticles(articles.filter(article => article.id !== articleId));
+           const updateArticle = async (articleId, updates) => {
+             try {
+               console.log('📦 Début mise à jour article:', articleId, updates);
+               
+               // Vérifier que supabaseDB est disponible
+               if (!window.supabaseDB) {
+                 console.error('❌ supabaseDB non disponible');
+                 alert('Erreur: Connexion à la base de données non disponible');
+                 return;
+               }
+               
+               // Mettre à jour dans Supabase
+               const result = await window.supabaseDB.updateArticle(articleId, updates);
+               console.log('📦 Résultat mise à jour Supabase:', result);
+               
+               if (result.error) {
+                 console.error('❌ Erreur mise à jour article:', result.error);
+                 alert(`Erreur lors de la mise à jour de l'article: ${result.error.message || result.error}`);
+                 return;
+               }
+               
+               // Mettre à jour l'état local
+               setArticles(articles.map(article => 
+                 article.id === articleId ? { ...article, ...updates } : article
+               ));
+               
+               console.log('✅ Article mis à jour avec succès');
+               
+             } catch (error) {
+               console.error('❌ Erreur mise à jour article:', error);
+               alert(`Erreur lors de la mise à jour de l'article: ${error.message}`);
+             }
+           };
+
+           const deleteArticle = async (articleId) => {
+             try {
+               console.log('📦 Début suppression article:', articleId);
+               
+               // Vérifier que supabaseDB est disponible
+               if (!window.supabaseDB) {
+                 console.error('❌ supabaseDB non disponible');
+                 alert('Erreur: Connexion à la base de données non disponible');
+                 return;
+               }
+               
+               // Supprimer dans Supabase
+               const result = await window.supabaseDB.deleteArticle(articleId);
+               console.log('📦 Résultat suppression Supabase:', result);
+               
+               if (result.error) {
+                 console.error('❌ Erreur suppression article:', result.error);
+                 alert(`Erreur lors de la suppression de l'article: ${result.error.message || result.error}`);
+                 return;
+               }
+               
+               // Mettre à jour l'état local
+               setArticles(articles.filter(article => article.id !== articleId));
+               
+               console.log('✅ Article supprimé avec succès');
+               
+             } catch (error) {
+               console.error('❌ Erreur suppression article:', error);
+               alert(`Erreur lors de la suppression de l'article: ${error.message}`);
+             }
            };
 
            // Fonctions de gestion des chantiers
@@ -2189,7 +2318,6 @@
                const chantier = {
                  nom: newChantier.nom,
                  description: newChantier.description,
-                 statut: newChantier.statut || 'actif',
                  icone: newChantier.icone || '🏗️'
                };
                
@@ -2290,7 +2418,36 @@
                  return;
                }
                
-               // Supprimer dans Supabase
+               // Vérifier s'il y a des articles associés à ce chantier
+               const articlesAssocies = articles.filter(article => article.chantier_id === chantierId);
+               if (articlesAssocies.length > 0) {
+                 const confirmSuppression = confirm(
+                   `Ce chantier contient ${articlesAssocies.length} article(s). ` +
+                   `Voulez-vous vraiment le supprimer ? Tous les articles associés seront également supprimés.`
+                 );
+                 
+                 if (!confirmSuppression) {
+                   console.log('❌ Suppression annulée par l\'utilisateur');
+                   return;
+                 }
+                 
+                 // Supprimer d'abord tous les articles associés
+                 console.log('🗑️ Suppression des articles associés...');
+                 for (const article of articlesAssocies) {
+                   const resultArticle = await window.supabaseDB.deleteArticle(article.id);
+                   if (resultArticle.error) {
+                     console.error('❌ Erreur suppression article:', resultArticle.error);
+                     alert(`Erreur lors de la suppression de l'article ${article.nom}: ${resultArticle.error.message}`);
+                     return;
+                   }
+                 }
+                 
+                 // Mettre à jour l'état local des articles
+                 setArticles(articles.filter(article => article.chantier_id !== chantierId));
+                 console.log('✅ Articles associés supprimés');
+               }
+               
+               // Supprimer le chantier dans Supabase
                const result = await window.supabaseDB.deleteChantier(chantierId);
                console.log('🏗️ Résultat suppression Supabase:', result);
                
