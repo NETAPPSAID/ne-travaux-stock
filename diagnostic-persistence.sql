@@ -29,12 +29,11 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
     AND tc.table_schema = 'public'
 ORDER BY tc.table_name;
 
--- 3. VÉRIFICATION DES SÉQUENCES
+-- 3. VÉRIFICATION DES SÉQUENCES (CORRIGÉ)
 SELECT '=== ÉTAT DES SÉQUENCES ===' as info;
 
 SELECT 
     sequence_name,
-    last_value,
     start_value,
     increment_by,
     max_value,
@@ -45,7 +44,20 @@ FROM information_schema.sequences
 WHERE sequence_schema = 'public'
 ORDER BY sequence_name;
 
--- 4. VÉRIFICATION DES TRIGGERS
+-- 4. VÉRIFICATION DES VALEURS ACTUELLES DES SÉQUENCES
+SELECT '=== VALEURS ACTUELLES DES SÉQUENCES ===' as info;
+
+SELECT 'chantiers_id_seq' as sequence, last_value FROM chantiers_id_seq
+UNION ALL
+SELECT 'articles_id_seq' as sequence, last_value FROM articles_id_seq
+UNION ALL
+SELECT 'commandes_id_seq' as sequence, last_value FROM commandes_id_seq
+UNION ALL
+SELECT 'stock_movements_id_seq' as sequence, last_value FROM stock_movements_id_seq
+UNION ALL
+SELECT 'uploaded_files_id_seq' as sequence, last_value FROM uploaded_files_id_seq;
+
+-- 5. VÉRIFICATION DES TRIGGERS
 SELECT '=== TRIGGERS ACTIFS ===' as info;
 
 SELECT 
@@ -58,7 +70,7 @@ FROM information_schema.triggers
 WHERE trigger_schema = 'public'
 ORDER BY event_object_table, trigger_name;
 
--- 5. COMPTAGE DES DONNÉES ACTUELLES
+-- 6. COMPTAGE DES DONNÉES ACTUELLES
 SELECT '=== COMPTAGE DES DONNÉES ===' as info;
 
 SELECT 'users' as table_name, COUNT(*) as count FROM users
@@ -73,7 +85,7 @@ SELECT 'stock_movements' as table_name, COUNT(*) as count FROM stock_movements
 UNION ALL
 SELECT 'uploaded_files' as table_name, COUNT(*) as count FROM uploaded_files;
 
--- 6. VÉRIFICATION DES DERNIÈRES MODIFICATIONS
+-- 7. VÉRIFICATION DES DERNIÈRES MODIFICATIONS
 SELECT '=== DERNIÈRES MODIFICATIONS ===' as info;
 
 SELECT 'Derniers chantiers modifiés:' as info;
@@ -85,7 +97,7 @@ SELECT id, nom, updated_at FROM articles ORDER BY updated_at DESC LIMIT 5;
 SELECT 'Dernières commandes modifiées:' as info;
 SELECT id, created_at FROM commandes ORDER BY created_at DESC LIMIT 5;
 
--- 7. VÉRIFICATION DES PERMISSIONS
+-- 8. VÉRIFICATION DES PERMISSIONS
 SELECT '=== PERMISSIONS UTILISATEUR ANON ===' as info;
 
 SELECT 
@@ -97,7 +109,7 @@ WHERE grantee = 'anon'
     AND table_schema = 'public'
 ORDER BY table_name, privilege_type;
 
--- 8. VÉRIFICATION DES RÈGLES DE RÉPLICATION
+-- 9. VÉRIFICATION DES RÈGLES DE RÉPLICATION
 SELECT '=== RÈGLES DE RÉPLICATION ===' as info;
 
 SELECT 
