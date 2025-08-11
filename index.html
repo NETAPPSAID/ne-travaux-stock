@@ -10,20 +10,20 @@
     <meta name="theme-color" content="#3B82F6">
     
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?v=2"></script>
     
     <!-- React -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js?v=2"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js?v=2"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js?v=2"></script>
     
     <!-- Supabase -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2?v=2"></script>
     <script>
         // Rendre createClient disponible globalement
         window.createClient = window.supabase.createClient;
     </script>
-    <script src="supabase-client.js"></script>
+    <script src="supabase-client.js?v=2"></script>
     
     <style>
         body {
@@ -56,6 +56,9 @@
     <!-- App Component -->
     <script type="text/babel">
         const { useState, useEffect } = React;
+
+        // Version de l'application pour forcer le rechargement
+        console.log('🚀 NE TRAVAUX - Version 2.0 - Chargement depuis Supabase uniquement');
 
                  // Données initiales (vides pour forcer le chargement depuis Supabase)
          const initialUsers = [
