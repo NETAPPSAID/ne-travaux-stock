@@ -29,17 +29,10 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
     AND tc.table_schema = 'public'
 ORDER BY tc.table_name;
 
--- 3. VÉRIFICATION DES SÉQUENCES (CORRIGÉ)
-SELECT '=== ÉTAT DES SÉQUENCES ===' as info;
+-- 3. VÉRIFICATION DES SÉQUENCES (SIMPLIFIÉ)
+SELECT '=== SÉQUENCES DISPONIBLES ===' as info;
 
-SELECT 
-    sequence_name,
-    start_value,
-    increment_by,
-    max_value,
-    min_value,
-    cache_value,
-    is_cycled
+SELECT sequence_name
 FROM information_schema.sequences 
 WHERE sequence_schema = 'public'
 ORDER BY sequence_name;
