@@ -1,0 +1,5 @@
+[33ma194e38[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix: Suppression du champ 'statut' et gestion des contraintes de clé étrangère pour la suppression des chantiers
+[33md06c54e[m Fix: Synchronisation des données avec Supabase - Correction des fonctions addArticle, updateArticle, deleteArticle et deleteChantier - Ajout de .select() dans supabase-client.js - Correction des séquences PostgreSQL - Amélioration de la gestion des erreurs
+[33m6f760c9[m Fix: Correction de l'ajout de chantier - laisser Supabase auto-générer l'ID
+[33ma0c1f08[m Fix: Ajout de test de connexion Supabase et clarification des logs
+[33mb74a5f1[m Fix: Ajout de vérifications pour supabaseDB et amélioration des logs

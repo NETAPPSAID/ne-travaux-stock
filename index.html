@@ -67,40 +67,9 @@
            { matricule: '600', nom: 'Pointeur 5', role: 'pointeur', chantier: 'Chantier E' }
          ];
 
-         const initialChantiers = [
-           { id: 1, nom: 'Chantier A', description: 'Site principal', statut: 'actif', pointeurs: ['200'] },
-           { id: 2, nom: 'Chantier B', description: 'Extension nord', statut: 'actif', pointeurs: ['300'] },
-           { id: 3, nom: 'Chantier C', description: 'Zone sud', statut: 'actif', pointeurs: ['400'] },
-           { id: 4, nom: 'Chantier D', description: 'Réhabilitation', statut: 'actif', pointeurs: ['500'] },
-           { id: 5, nom: 'Chantier E', description: 'Nouveau projet', statut: 'actif', pointeurs: ['600'] }
-         ];
+         const initialChantiers = [];
 
-                 const initialArticles = [
-           // Chantier A
-           { id: 1, nom: 'Ciment', icone: '🛠️', quantite: 50, entree: 0, sortie: 0, chantierId: 1 },
-           { id: 2, nom: 'Sable', icone: '🏖️', quantite: 200, entree: 0, sortie: 0, chantierId: 1 },
-           { id: 3, nom: 'Briques', icone: '🧱', quantite: 300, entree: 0, sortie: 0, chantierId: 1 },
-           
-           // Chantier B
-           { id: 4, nom: 'Ciment', icone: '🛠️', quantite: 30, entree: 0, sortie: 0, chantierId: 2 },
-           { id: 5, nom: 'Sable', icone: '🏖️', quantite: 150, entree: 0, sortie: 0, chantierId: 2 },
-           { id: 6, nom: 'Briques', icone: '🧱', quantite: 200, entree: 0, sortie: 0, chantierId: 2 },
-           
-           // Chantier C
-           { id: 7, nom: 'Ciment', icone: '🛠️', quantite: 40, entree: 0, sortie: 0, chantierId: 3 },
-           { id: 8, nom: 'Sable', icone: '🏖️', quantite: 180, entree: 0, sortie: 0, chantierId: 3 },
-           { id: 9, nom: 'Briques', icone: '🧱', quantite: 250, entree: 0, sortie: 0, chantierId: 3 },
-           
-           // Chantier D
-           { id: 10, nom: 'Ciment', icone: '🛠️', quantite: 25, entree: 0, sortie: 0, chantierId: 4 },
-           { id: 11, nom: 'Sable', icone: '🏖️', quantite: 120, entree: 0, sortie: 0, chantierId: 4 },
-           { id: 12, nom: 'Briques', icone: '🧱', quantite: 180, entree: 0, sortie: 0, chantierId: 4 },
-           
-           // Chantier E
-           { id: 13, nom: 'Ciment', icone: '🛠️', quantite: 35, entree: 0, sortie: 0, chantierId: 5 },
-           { id: 14, nom: 'Sable', icone: '🏖️', quantite: 160, entree: 0, sortie: 0, chantierId: 5 },
-           { id: 15, nom: 'Briques', icone: '🧱', quantite: 220, entree: 0, sortie: 0, chantierId: 5 }
-         ];
+         const initialArticles = [];
 
          // Données initiales pour l'historique des mouvements
          const initialHistorique = [
@@ -1218,7 +1187,7 @@
            const [editingPassword, setEditingPassword] = useState(null);
            const [editingChantier, setEditingChantier] = useState(null);
            const [newArticle, setNewArticle] = useState({ nom: '', icone: '📦', quantite: 0, chantierId: 1 });
-           const [newChantier, setNewChantier] = useState({ nom: '', description: '', statut: 'actif' });
+           const [newChantier, setNewChantier] = useState({ nom: '', description: '', icone: '🏗️' });
            const [showAddArticleForm, setShowAddArticleForm] = useState(false);
            const [showAddChantierForm, setShowAddChantierForm] = useState(false);
 
