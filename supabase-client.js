@@ -199,12 +199,12 @@ window.supabaseDB = {
 
     // Écouter les changements sur les articles
     supabase
-      .channel('stock_changes')
+      .channel('article_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'articles' },
         (payload) => {
           console.log('🔄 Changement détecté sur articles:', payload)
-          window.dispatchEvent(new CustomEvent('stock-updated', { detail: payload }))
+          window.dispatchEvent(new CustomEvent('article-updated', { detail: payload }))
         }
       )
       .subscribe()

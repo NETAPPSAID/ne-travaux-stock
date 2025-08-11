@@ -142,6 +142,32 @@
                 };
                 
                 loadData();
+
+                // Écouteur pour les mises à jour en temps réel
+                const handleChantierUpdate = (event) => {
+                    console.log('🔄 Mise à jour des chantiers reçue:', event.detail);
+                    window.supabaseDB.getChantiers().then(data => {
+                        console.log('🔄 Chantiers rechargés depuis Supabase:', data);
+                        setChantiers(data);
+                    });
+                };
+
+                const handleArticleUpdate = (event) => {
+                    console.log('🔄 Mise à jour des articles reçue:', event.detail);
+                    window.supabaseDB.getArticles().then(data => {
+                        console.log('🔄 Articles rechargés depuis Supabase:', data);
+                        setArticles(data);
+                    });
+                };
+
+                window.addEventListener('chantier-updated', handleChantierUpdate);
+                window.addEventListener('article-updated', handleArticleUpdate);
+
+                // Nettoyage des écouteurs
+                return () => {
+                    window.removeEventListener('chantier-updated', handleChantierUpdate);
+                    window.removeEventListener('article-updated', handleArticleUpdate);
+                };
             }, []);
 
             const handleLogin = async (matricule, password) => {
@@ -261,16 +287,45 @@
                 const handleAddChantier = async () => {
                     if (newChantier.nom.trim()) {
                         try {
+                            console.log('🏗️ Début ajout chantier:', newChantier);
                             const result = await window.supabaseDB.addChantier(newChantier);
+                            console.log('🏗️ Réponse Supabase:', result);
+                            
                             if (result.error) {
                                 alert('Erreur lors de l\'ajout du chantier: ' + result.error.message);
                             } else {
                                 alert('Chantier ajouté avec succès !');
                                 setNewChantier({ nom: '', description: '', icone: '🏗️' });
+                                // Recharger les chantiers depuis Supabase
                                 const newChantiers = await window.supabaseDB.getChantiers();
+                                console.log('🔄 Chantiers rechargés:', newChantiers);
                                 setChantiers(newChantiers);
                             }
                         } catch (error) {
+                            console.error('❌ Erreur ajout chantier:', error);
+                            alert('Erreur: ' + error.message);
+                        }
+                    }
+                };
+
+                const handleDeleteChantier = async (chantierId) => {
+                    if (confirm('Êtes-vous sûr de vouloir supprimer ce chantier ?')) {
+                        try {
+                            console.log('🗑️ Début suppression chantier:', chantierId);
+                            const result = await window.supabaseDB.deleteChantier(chantierId);
+                            console.log('🗑️ Réponse suppression:', result);
+                            
+                            if (result.error) {
+                                alert('Erreur lors de la suppression du chantier: ' + result.error.message);
+                            } else {
+                                alert('Chantier supprimé avec succès !');
+                                // Recharger les chantiers depuis Supabase
+                                const newChantiers = await window.supabaseDB.getChantiers();
+                                console.log('🔄 Chantiers rechargés après suppression:', newChantiers);
+                                setChantiers(newChantiers);
+                            }
+                        } catch (error) {
+                            console.error('❌ Erreur suppression chantier:', error);
                             alert('Erreur: ' + error.message);
                         }
                     }
@@ -279,19 +334,48 @@
                 const handleAddArticle = async () => {
                     if (newArticle.nom.trim() && newArticle.chantier_id) {
                         try {
+                            console.log('📦 Début ajout article:', newArticle);
                             const result = await window.supabaseDB.addArticle({
                                 ...newArticle,
                                 chantier_id: parseInt(newArticle.chantier_id)
                             });
+                            console.log('📦 Réponse Supabase:', result);
+                            
                             if (result.error) {
                                 alert('Erreur lors de l\'ajout de l\'article: ' + result.error.message);
                             } else {
                                 alert('Article ajouté avec succès !');
                                 setNewArticle({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
+                                // Recharger les articles depuis Supabase
                                 const newArticles = await window.supabaseDB.getArticles();
+                                console.log('🔄 Articles rechargés:', newArticles);
                                 setArticles(newArticles);
                             }
                         } catch (error) {
+                            console.error('❌ Erreur ajout article:', error);
+                            alert('Erreur: ' + error.message);
+                        }
+                    }
+                };
+
+                const handleDeleteArticle = async (articleId) => {
+                    if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+                        try {
+                            console.log('🗑️ Début suppression article:', articleId);
+                            const result = await window.supabaseDB.deleteArticle(articleId);
+                            console.log('🗑️ Réponse suppression article:', result);
+                            
+                            if (result.error) {
+                                alert('Erreur lors de la suppression de l\'article: ' + result.error.message);
+                            } else {
+                                alert('Article supprimé avec succès !');
+                                // Recharger les articles depuis Supabase
+                                const newArticles = await window.supabaseDB.getArticles();
+                                console.log('🔄 Articles rechargés après suppression:', newArticles);
+                                setArticles(newArticles);
+                            }
+                        } catch (error) {
+                            console.error('❌ Erreur suppression article:', error);
                             alert('Erreur: ' + error.message);
                         }
                     }
@@ -332,9 +416,17 @@
                             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {chantiers.map(chantier => (
                                     <div key={chantier.id} className="border rounded-lg p-4">
-                                        <div>
-                                            <h4 className="font-semibold">{chantier.nom}</h4>
-                                            <p className="text-sm text-gray-600">{chantier.description}</p>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-semibold">{chantier.nom}</h4>
+                                                <p className="text-sm text-gray-600">{chantier.description}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteChantier(chantier.id)}
+                                                className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                                            >
+                                                Supprimer
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -384,10 +476,18 @@
                                     const chantier = chantiers.find(c => c.id === article.chantier_id);
                                     return (
                                         <div key={article.id} className="border rounded-lg p-4">
-                                            <div>
-                                                <h4 className="font-semibold">{article.nom}</h4>
-                                                <p className="text-sm text-gray-600">Quantité: {article.quantite}</p>
-                                                {chantier && <p className="text-sm text-gray-500">{chantier.nom}</p>}
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-semibold">{article.nom}</h4>
+                                                    <p className="text-sm text-gray-600">Quantité: {article.quantite}</p>
+                                                    {chantier && <p className="text-sm text-gray-500">{chantier.nom}</p>}
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDeleteArticle(article.id)}
+                                                    className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                                                >
+                                                    Supprimer
+                                                </button>
                                             </div>
                                         </div>
                                     );
