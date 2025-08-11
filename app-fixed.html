@@ -160,7 +160,7 @@
                 try {
                     console.log('🔐 VERSION CORRIGÉE - Tentative de connexion pour matricule:', matricule);
                     
-                    const { data: user, error } = await window.supabaseDB.getUserByMatricule(matricule);
+                    const { data, error } = await window.supabaseDB.getUserByMatricule(matricule);
                     
                     if (error) {
                         console.error('Erreur lors de la récupération de l\'utilisateur:', error);
@@ -168,10 +168,10 @@
                         return;
                     }
                     
-                    console.log('📋 VERSION CORRIGÉE - Données utilisateur récupérées:', user);
+                    console.log('📋 VERSION CORRIGÉE - Données utilisateur récupérées:', data);
                     
-                    if (user && user.length > 0) {
-                        const userData = user[0];
+                    if (data && data.length > 0) {
+                        const userData = data[0];
                         console.log('👤 VERSION CORRIGÉE - Données utilisateur:', userData);
                         
                         if (password === userData.password) {
