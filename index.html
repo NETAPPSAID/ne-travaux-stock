@@ -46,9 +46,72 @@
     <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"></script>
     
+    <!-- jsPDF pour génération de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Styles pour mobile */
+        @media (max-width: 768px) {
+            .mobile-full-width {
+                width: 100% !important;
+            }
+            
+            .mobile-stack {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            .mobile-text-center {
+                text-align: center !important;
+            }
+            
+            .mobile-p-2 {
+                padding: 0.5rem !important;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem !important;
+            }
+            
+            .mobile-grid-1 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .mobile-tab-full {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            
+            .mobile-form-stack > div {
+                margin-bottom: 1rem !important;
+            }
+        }
+        
+        /* Amélioration de l'expérience tactile */
+        @media (hover: none) and (pointer: coarse) {
+            button, input, select, textarea {
+                min-height: 44px !important;
+            }
+            
+            .touch-target {
+                min-width: 44px !important;
+                min-height: 44px !important;
+            }
+        }
+        
+        /* Animation de chargement */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -291,6 +354,22 @@
                             }
                         },
 
+                        async updateEntree(id, updates) {
+                            try {
+                                console.log('🔄 [SUPABASE] Mise à jour entrée ID:', id, 'Updates:', updates);
+                                const { data, error } = await supabase
+                                    .from('entrees')
+                                    .update(updates)
+                                    .eq('id', id)
+                                    .select()
+                                console.log('🔄 [SUPABASE] Résultat mise à jour entrée:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur updateEntree:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
                         // ===== GESTION DES SORTIES =====
                         async addSortie(sortie) {
                             try {
@@ -403,6 +482,53 @@
                             } catch (err) {
                                 console.error('❌ [SUPABASE] Erreur getSortiesByChantier:', err);
                                 return []
+                            }
+                        },
+
+                        // ===== FONCTIONS STORAGE =====
+                        async uploadBonEntree(file, entreeId) {
+                            try {
+                                console.log('📤 [SUPABASE] Upload bon entrée:', { fileName: file.name, entreeId });
+                                
+                                const fileExt = file.name.split('.').pop();
+                                const fileName = `bon-entree-${entreeId}-${Date.now()}.${fileExt}`;
+                                const filePath = `bons-entree/${fileName}`;
+                                
+                                const { data, error } = await supabase.storage
+                                    .from('ne-travaux-storage')
+                                    .upload(filePath, file);
+                                
+                                if (error) {
+                                    console.error('❌ [SUPABASE] Erreur upload:', error);
+                                    return { data: null, error };
+                                }
+                                
+                                // Obtenir l'URL publique
+                                const { data: urlData } = supabase.storage
+                                    .from('ne-travaux-storage')
+                                    .getPublicUrl(filePath);
+                                
+                                console.log('✅ [SUPABASE] Upload réussi:', urlData.publicUrl);
+                                return { data: urlData.publicUrl, error: null };
+                                
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur uploadBonEntree:', err);
+                                return { data: null, error: err };
+                            }
+                        },
+
+                        async getBonEntreeUrl(entreeId) {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('entrees')
+                                    .select('bon_entree_url')
+                                    .eq('id', entreeId)
+                                    .single();
+                                
+                                return { data: data?.bon_entree_url, error };
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur getBonEntreeUrl:', err);
+                                return { data: null, error: err };
                             }
                         }
                     }
@@ -856,7 +982,7 @@
                         chantier_id: chantier_id,
                         quantite: parseInt(entreeFormRef.current.quantite),
                         date_entree: entreeFormRef.current.date || new Date().toISOString(),
-                        bon_entree_url: entreeFormRef.current.bon_entree || null,
+                        bon_entree_url: null, // Sera mis à jour après upload
                         pointeur_matricule: parseInt(currentUser.matricule)
                     };
                     
@@ -871,6 +997,25 @@
                     }
                     
                     console.log('✅ Entrée ajoutée avec succès:', data);
+                    
+                    // Upload du bon d'entrée si un fichier est sélectionné
+                    if (entreeFormRef.current.bon_entree_file) {
+                        console.log('📤 Upload du bon d\'entrée...');
+                        const { data: uploadData, error: uploadError } = await window.supabaseDB.uploadBonEntree(
+                            entreeFormRef.current.bon_entree_file, 
+                            data[0].id
+                        );
+                        
+                        if (uploadError) {
+                            console.error('Erreur lors de l\'upload:', uploadError);
+                            alert('Entrée enregistrée mais erreur lors de l\'upload du bon d\'entrée.');
+                        } else {
+                            // Mettre à jour l'entrée avec l'URL du bon
+                            await window.supabaseDB.updateEntree(data[0].id, { bon_entree_url: uploadData });
+                            console.log('✅ Bon d\'entrée uploadé avec succès');
+                        }
+                    }
+                    
                     alert('✅ Entrée enregistrée avec succès !');
                     
                     // Mettre à jour le stock de l'article
@@ -884,7 +1029,7 @@
                     await reloadAllData();
                     
                     // Réinitialiser le formulaire
-                    entreeFormRef.current = { article_id: '', quantite: '', date: '', bon_entree: '' };
+                    entreeFormRef.current = { article_id: '', quantite: '', date: '', bon_entree_file: null };
                     
                 } catch (error) {
                     console.error('Erreur lors de l\'ajout de l\'entrée:', error);
@@ -1026,40 +1171,101 @@
                         pointeur: currentUser.nom
                     };
                     
-                    // Créer le contenu du bon de sortie
-                    const content = `
-BON DE SORTIE
-
-Numéro: ${bonSortie.numero}
-Date: ${bonSortie.date}
-Heure: ${bonSortie.heure}
-
-CHANTIER: ${bonSortie.chantier}
-POINTEUR: ${bonSortie.pointeur}
-
-ARTICLE: ${bonSortie.article}
-QUANTITÉ: ${bonSortie.quantite}
-MOTIF: ${bonSortie.motif}
-
-Signature: _________________
-                    `.trim();
+                    // Créer le PDF avec jsPDF
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
                     
-                    // Créer et télécharger le fichier
-                    const blob = new Blob([content], { type: 'text/plain' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `bon-sortie-${bonSortie.numero}.txt`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
+                    // En-tête avec logo
+                    doc.setFontSize(20);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('NE TRAVAUX', 105, 20, { align: 'center' });
                     
-                    console.log('📄 Bon de sortie téléchargé:', bonSortie);
+                    // Logo placeholder (cercle avec initiales)
+                    doc.setFillColor(59, 130, 246); // Bleu
+                    doc.circle(20, 20, 8, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(12);
+                    doc.text('NE', 20, 24, { align: 'center' });
+                    
+                    // Titre du document
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('BON DE SORTIE', 105, 40, { align: 'center' });
+                    
+                    // Informations du bon
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
+                    
+                    let yPosition = 60;
+                    doc.text(`Numéro: ${bonSortie.numero}`, 20, yPosition);
+                    doc.text(`Date: ${bonSortie.date}`, 120, yPosition);
+                    yPosition += 10;
+                    doc.text(`Heure: ${bonSortie.heure}`, 20, yPosition);
+                    yPosition += 15;
+                    
+                    // Informations du chantier et pointeur
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('INFORMATIONS:', 20, yPosition);
+                    yPosition += 10;
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Chantier: ${bonSortie.chantier}`, 20, yPosition);
+                    yPosition += 8;
+                    doc.text(`Pointeur: ${bonSortie.pointeur}`, 20, yPosition);
+                    yPosition += 15;
+                    
+                    // Détails de l'article
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('ARTICLE SORTI:', 20, yPosition);
+                    yPosition += 10;
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Article: ${bonSortie.article}`, 20, yPosition);
+                    yPosition += 8;
+                    doc.text(`Quantité: ${bonSortie.quantite}`, 20, yPosition);
+                    yPosition += 8;
+                    doc.text(`Motif: ${bonSortie.motif}`, 20, yPosition);
+                    yPosition += 20;
+                    
+                    // Tableau récapitulatif
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('RÉCAPITULATIF:', 20, yPosition);
+                    yPosition += 10;
+                    
+                    const tableData = [
+                        ['Article', 'Quantité', 'Motif'],
+                        [bonSortie.article, bonSortie.quantite.toString(), bonSortie.motif]
+                    ];
+                    
+                    doc.autoTable({
+                        startY: yPosition,
+                        head: [tableData[0]],
+                        body: [tableData[1]],
+                        theme: 'grid',
+                        headStyles: { fillColor: [59, 130, 246] },
+                        margin: { left: 20 }
+                    });
+                    
+                    // Signature
+                    const finalY = doc.lastAutoTable.finalY + 20;
+                    doc.text('Signature du pointeur:', 20, finalY);
+                    doc.line(20, finalY + 5, 80, finalY + 5);
+                    
+                    doc.text('Signature du responsable:', 120, finalY);
+                    doc.line(120, finalY + 5, 180, finalY + 5);
+                    
+                    // Pied de page
+                    doc.setFontSize(8);
+                    doc.setTextColor(128, 128, 128);
+                    doc.text('Document généré automatiquement par NE TRAVAUX - Gestion de Stock', 105, 280, { align: 'center' });
+                    
+                    // Sauvegarder le PDF
+                    doc.save(`bon-sortie-${bonSortie.numero}.pdf`);
+                    
+                    console.log('📄 Bon de sortie PDF généré:', bonSortie);
                     
                 } catch (error) {
-                    console.error('Erreur lors du téléchargement du bon de sortie:', error);
-                    alert('Erreur lors du téléchargement du bon de sortie');
+                    console.error('Erreur lors de la génération du PDF:', error);
+                    alert('Erreur lors de la génération du PDF: ' + error.message);
                 }
             };
 
@@ -1238,7 +1444,7 @@ Généré automatiquement par NE TRAVAUX - Gestion de Stock
                             {/* Onglets pour les pointeurs */}
                             <div className="bg-white rounded-lg shadow-md">
                                 <div className="border-b border-gray-200">
-                                    <nav className="flex space-x-8 px-6">
+                                    <nav className="flex space-x-8 px-6 mobile-tab-full mobile-stack md:flex-row">
                                         <button
                                             onClick={() => setActivePointeurTab('stock')}
                                             className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -1321,7 +1527,7 @@ Généré automatiquement par NE TRAVAUX - Gestion de Stock
                                             {/* Formulaire d'entrée */}
                                             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                                                 <h4 className="font-semibold text-green-800 mb-4">📥 Nouvelle entrée</h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mobile-form-stack">
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 mb-2">Article</label>
                                                         <select
@@ -1362,14 +1568,22 @@ Généré automatiquement par NE TRAVAUX - Gestion de Stock
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Bon d'entrée (URL)</label>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Bon d'entrée (Image)</label>
                                                         <input
-                                                            type="url"
-                                                            defaultValue=""
-                                                            onBlur={(e) => entreeFormRef.current.bon_entree = e.target.value}
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files[0];
+                                                                if (file) {
+                                                                    entreeFormRef.current.bon_entree_file = file;
+                                                                    console.log('📸 Fichier sélectionné:', file.name);
+                                                                }
+                                                            }}
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                                            placeholder="https://..."
                                                         />
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            Formats acceptés: JPG, PNG, GIF (max 5MB)
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <div className="mt-4">
@@ -1434,7 +1648,7 @@ Généré automatiquement par NE TRAVAUX - Gestion de Stock
                                             {/* Formulaire de sortie */}
                                             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
                                                 <h4 className="font-semibold text-red-800 mb-4">📤 Nouvelle sortie</h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mobile-form-stack">
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 mb-2">Article</label>
                                                         <select
@@ -1551,7 +1765,7 @@ Généré automatiquement par NE TRAVAUX - Gestion de Stock
                                             {/* Formulaire de commande */}
                                             <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
                                                 <h4 className="font-semibold text-purple-800 mb-4">📋 Nouvelle commande</h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mobile-form-stack">
                                                     <div>
                                                         <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'article</label>
                                                         <input
