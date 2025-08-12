@@ -536,8 +536,79 @@
                     console.log('✅ Supabase client intégré chargé avec succès')
                     console.log('✅ window.supabaseDB disponible:', !!window.supabaseDB)
                     
-                    // SYNCHRONISATION TEMPS RÉEL COMPLÈTEMENT DÉSACTIVÉE
-                    console.log('🚫 Synchronisation temps réel DÉSACTIVÉE - Pas de rechargement automatique')
+                    // SYNCHRONISATION TEMPS RÉEL ACTIVÉE
+                    console.log('🔄 Activation de la synchronisation temps réel...')
+                    
+                    // Fonction de synchronisation temps réel
+                    const syncWithSupabase = async () => {
+                        console.log('🔄 Démarrage de la synchronisation temps réel...')
+                        
+                        // Écouter les changements sur les tables
+                        const entreesSubscription = supabase
+                            .channel('entrees-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'entrees' }, 
+                                (payload) => {
+                                    console.log('📥 Changement détecté sur entrees:', payload)
+                                    reloadAllData()
+                                }
+                            )
+                            .subscribe()
+                        
+                        const sortiesSubscription = supabase
+                            .channel('sorties-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'sorties' }, 
+                                (payload) => {
+                                    console.log('📤 Changement détecté sur sorties:', payload)
+                                    reloadAllData()
+                                }
+                            )
+                            .subscribe()
+                        
+                        const commandesSubscription = supabase
+                            .channel('commandes-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'commandes' }, 
+                                (payload) => {
+                                    console.log('📋 Changement détecté sur commandes:', payload)
+                                    reloadAllData()
+                                }
+                            )
+                            .subscribe()
+                        
+                        const articlesSubscription = supabase
+                            .channel('articles-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'articles' }, 
+                                (payload) => {
+                                    console.log('📦 Changement détecté sur articles:', payload)
+                                    reloadAllData()
+                                }
+                            )
+                            .subscribe()
+                        
+                        const chantiersSubscription = supabase
+                            .channel('chantiers-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'chantiers' }, 
+                                (payload) => {
+                                    console.log('🏗️ Changement détecté sur chantiers:', payload)
+                                    reloadAllData()
+                                }
+                            )
+                            .subscribe()
+                        
+                        const usersSubscription = supabase
+                            .channel('users-changes')
+                            .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, 
+                                (payload) => {
+                                    console.log('👤 Changement détecté sur users:', payload)
+                                    reloadAllData()
+                                }
+                            )
+                            .subscribe()
+                        
+                        console.log('✅ Synchronisation temps réel activée')
+                    }
+                    
+                    // Démarrer la synchronisation
+                    syncWithSupabase()
                     
                 } catch (error) {
                     console.error('❌ Erreur lors de la création du client Supabase:', error);
@@ -1180,12 +1251,39 @@
                     doc.setFont('helvetica', 'bold');
                     doc.text('NE TRAVAUX', 105, 20, { align: 'center' });
                     
-                    // Logo placeholder (cercle avec initiales)
-                    doc.setFillColor(59, 130, 246); // Bleu
-                    doc.circle(20, 20, 8, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(12);
-                    doc.text('NE', 20, 24, { align: 'center' });
+                    // Logo de l'entreprise
+                    try {
+                        // Essayer de charger le logo existant
+                        const logoImg = new Image();
+                        logoImg.crossOrigin = 'anonymous';
+                        logoImg.onload = function() {
+                            // Convertir l'image en base64
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = logoImg.width;
+                            canvas.height = logoImg.height;
+                            ctx.drawImage(logoImg, 0, 0);
+                            
+                            const logoDataUrl = canvas.toDataURL('image/png');
+                            doc.addImage(logoDataUrl, 'PNG', 15, 15, 20, 20);
+                        };
+                        logoImg.onerror = function() {
+                            // Fallback : logo placeholder si l'image ne charge pas
+                            doc.setFillColor(59, 130, 246); // Bleu
+                            doc.circle(20, 20, 8, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(12);
+                            doc.text('NE', 20, 24, { align: 'center' });
+                        };
+                        logoImg.src = './logo.jpg.jpg';
+                    } catch (error) {
+                        // Fallback en cas d'erreur
+                        doc.setFillColor(59, 130, 246); // Bleu
+                        doc.circle(20, 20, 8, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(12);
+                        doc.text('NE', 20, 24, { align: 'center' });
+                    }
                     
                     // Titre du document
                     doc.setTextColor(0, 0, 0);
@@ -2170,7 +2268,7 @@ Généré automatiquement par NE TRAVAUX - Gestion de Stock
                                                         {chantier && <p className="text-sm text-purple-600">{chantier.nom}</p>}
                                                     </div>
                                                     <button
-                                                        onClick={() => handleDeleteUser(user.id)}
+                                                        onClick={() => handleDeleteUser(user.matricule)}
                                                         className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
                                                     >
                                                         Supprimer
