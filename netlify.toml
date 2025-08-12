@@ -1,6 +1,4 @@
-[build]
-  publish = "."
-
+# Configuration Netlify - Redirection vers index.html uniquement
 [[redirects]]
   from = "/"
   to = "/index.html"
@@ -13,22 +11,11 @@
   status = 200
   force = true
 
+# Bloquer toutes les autres URLs et rediriger vers l'URL principale
 [[redirects]]
-  from = "/app.html"
-  to = "/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/final.html"
-  to = "/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/main.html"
-  to = "/index.html"
-  status = 200
+  from = "/*"
+  to = "/"
+  status = 301
   force = true
 
 [build.environment]
