@@ -244,13 +244,13 @@
                             }
                         },
 
-                        async deleteUser(id) {
+                        async deleteUser(matricule) {
                             try {
-                                console.log('🗑️ [SUPABASE] Début suppression utilisateur ID:', id);
+                                console.log('🗑️ [SUPABASE] Début suppression utilisateur matricule:', matricule);
                                 const { data, error } = await supabase
                                     .from('users')
                                     .delete()
-                                    .eq('id', id)
+                                    .eq('matricule', matricule)
                                     .select()
                                 console.log('🗑️ [SUPABASE] Résultat suppression utilisateur:', { data, error });
                                 return { data, error }
@@ -789,12 +789,12 @@
                 }
             };
 
-            const handleDeleteUser = async (id) => {
+            const handleDeleteUser = async (matricule) => {
                 try {
-                    console.log('🗑️ Suppression utilisateur ID:', id);
+                    console.log('🗑️ Suppression utilisateur matricule:', matricule);
                     console.log('🗑️ Vérification de supabaseDB:', !!window.supabaseDB);
                     
-                    const { data, error } = await window.supabaseDB.deleteUser(id);
+                    const { data, error } = await window.supabaseDB.deleteUser(matricule);
                     
                     console.log('🗑️ Résultat suppression utilisateur:', { data, error });
                     
@@ -1054,11 +1054,26 @@ Signature: _________________
                 const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
                 const [activePointeurTab, setActivePointeurTab] = useState('stock');
                 
+                console.log('🔍 Données utilisateur connecté:', {
+                    currentUser: currentUser,
+                    userChantier: userChantier,
+                    articles: articles.length,
+                    chantiers: chantiers.length
+                });
+                
                 const filteredArticles = currentUser.role === 'admin' 
                     ? articles 
                     : articles.filter(article => {
                         const chantier = chantiers.find(c => c.id === article.chantier_id);
-                        return chantier && chantier.nom === userChantier;
+                        const matches = chantier && chantier.nom === userChantier;
+                        console.log('🔍 Filtrage article:', {
+                            article: article.nom,
+                            article_chantier_id: article.chantier_id,
+                            chantier_nom: chantier?.nom,
+                            userChantier: userChantier,
+                            matches: matches
+                        });
+                        return matches;
                     });
 
                 // Grouper les articles par chantier pour l'admin
