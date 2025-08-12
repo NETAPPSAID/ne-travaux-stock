@@ -671,6 +671,12 @@
                         <div className="bg-white rounded-lg shadow-md p-6">
                             <h3 className="text-xl font-semibold mb-4">Gestion des Articles</h3>
                             
+                            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-blue-800 text-sm">
+                                    <strong>💡 Note :</strong> Vous devez d'abord créer un chantier, puis le sélectionner avant d'ajouter un article.
+                                </p>
+                            </div>
+                            
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                 <input
                                     type="text"
@@ -701,8 +707,9 @@
                             <button
                                 onClick={handleAddArticle}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                disabled={chantiers.length === 0}
                             >
-                                Ajouter un article
+                                {chantiers.length === 0 ? 'Créez d\'abord un chantier' : 'Ajouter un article'}
                             </button>
 
                             {loading && (
