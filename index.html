@@ -207,6 +207,22 @@
                             }
                         },
 
+                        async updateArticle(id, updates) {
+                            try {
+                                console.log('🔄 [SUPABASE] Mise à jour article ID:', id, 'Updates:', updates);
+                                const { data, error } = await supabase
+                                    .from('articles')
+                                    .update(updates)
+                                    .eq('id', id)
+                                    .select()
+                                console.log('🔄 [SUPABASE] Résultat mise à jour article:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur updateArticle:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
                         // ===== GESTION DES UTILISATEURS =====
                         async addUser(user) {
                             try {
@@ -333,6 +349,59 @@
                                 return data || []
                             } catch (err) {
                                 console.error('❌ [SUPABASE] Erreur getCommandes:', err);
+                                return []
+                            }
+                        },
+
+                        // ===== FONCTIONS SUPPLÉMENTAIRES =====
+                        async updateCommandeStatus(id, statut) {
+                            try {
+                                console.log('📋 [SUPABASE] Mise à jour statut commande:', { id, statut });
+                                const { data, error } = await supabase
+                                    .from('commandes')
+                                    .update({ statut })
+                                    .eq('id', id)
+                                    .select()
+                                console.log('📋 [SUPABASE] Résultat mise à jour commande:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur updateCommandeStatus:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async getEntreesByChantier(chantier_id) {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('entrees')
+                                    .select(`
+                                        *,
+                                        articles(nom, icone),
+                                        users(nom)
+                                    `)
+                                    .eq('chantier_id', chantier_id)
+                                console.log('📥 [SUPABASE] Résultat getEntreesByChantier:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur getEntreesByChantier:', err);
+                                return []
+                            }
+                        },
+
+                        async getSortiesByChantier(chantier_id) {
+                            try {
+                                const { data, error } = await supabase
+                                    .from('sorties')
+                                    .select(`
+                                        *,
+                                        articles(nom, icone),
+                                        users(nom)
+                                    `)
+                                    .eq('chantier_id', chantier_id)
+                                console.log('📤 [SUPABASE] Résultat getSortiesByChantier:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur getSortiesByChantier:', err);
                                 return []
                             }
                         }
@@ -747,6 +816,239 @@
                 }
             };
 
+            // ===== FONCTIONS DE GESTION POINTEUR =====
+            
+            const handleAddEntree = async () => {
+                try {
+                    console.log('📥 Ajout entrée:', entreeFormRef.current);
+                    
+                    if (!entreeFormRef.current.article_id || !entreeFormRef.current.quantite) {
+                        alert('Veuillez remplir tous les champs obligatoires.');
+                        return;
+                    }
+                    
+                    // Trouver l'ID du chantier à partir du nom
+                    const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                    const chantier = chantiers.find(c => c.nom === userChantier);
+                    const chantier_id = chantier ? chantier.id : null;
+                    
+                    if (!chantier_id) {
+                        alert('Erreur: Impossible de déterminer le chantier.');
+                        return;
+                    }
+                    
+                    const entreeData = {
+                        article_id: parseInt(entreeFormRef.current.article_id),
+                        chantier_id: chantier_id,
+                        quantite: parseInt(entreeFormRef.current.quantite),
+                        date_entree: entreeFormRef.current.date || new Date().toISOString(),
+                        bon_entree_url: entreeFormRef.current.bon_entree || null,
+                        pointeur_matricule: parseInt(currentUser.matricule)
+                    };
+                    
+                    console.log('📥 Données entrée préparées:', entreeData);
+                    
+                    const { data, error } = await window.supabaseDB.addEntree(entreeData);
+                    
+                    if (error) {
+                        console.error('Erreur lors de l\'ajout de l\'entrée:', error);
+                        alert('Erreur lors de l\'ajout de l\'entrée: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ Entrée ajoutée avec succès:', data);
+                    alert('✅ Entrée enregistrée avec succès !');
+                    
+                    // Mettre à jour le stock de l'article
+                    const article = articles.find(a => a.id === entreeData.article_id);
+                    if (article) {
+                        const newQuantite = article.quantite + entreeData.quantite;
+                        await window.supabaseDB.updateArticle(entreeData.article_id, { quantite: newQuantite });
+                    }
+                    
+                    // Recharger les données
+                    await reloadAllData();
+                    
+                    // Réinitialiser le formulaire
+                    entreeFormRef.current = { article_id: '', quantite: '', date: '', bon_entree: '' };
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'ajout de l\'entrée:', error);
+                    alert('Erreur lors de l\'ajout de l\'entrée: ' + error.message);
+                }
+            };
+
+            const handleAddSortie = async () => {
+                try {
+                    console.log('📤 Ajout sortie:', sortieFormRef.current);
+                    
+                    if (!sortieFormRef.current.article_id || !sortieFormRef.current.quantite) {
+                        alert('Veuillez remplir tous les champs obligatoires.');
+                        return;
+                    }
+                    
+                    // Trouver l'ID du chantier à partir du nom
+                    const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                    const chantier = chantiers.find(c => c.nom === userChantier);
+                    const chantier_id = chantier ? chantier.id : null;
+                    
+                    if (!chantier_id) {
+                        alert('Erreur: Impossible de déterminer le chantier.');
+                        return;
+                    }
+                    
+                    // Vérifier le stock disponible
+                    const article = articles.find(a => a.id === parseInt(sortieFormRef.current.article_id));
+                    if (article && article.quantite < parseInt(sortieFormRef.current.quantite)) {
+                        alert('Erreur: Stock insuffisant. Stock disponible: ' + article.quantite);
+                        return;
+                    }
+                    
+                    const sortieData = {
+                        article_id: parseInt(sortieFormRef.current.article_id),
+                        chantier_id: chantier_id,
+                        quantite: parseInt(sortieFormRef.current.quantite),
+                        date_sortie: sortieFormRef.current.date || new Date().toISOString(),
+                        motif: sortieFormRef.current.motif || null,
+                        pointeur_matricule: parseInt(currentUser.matricule)
+                    };
+                    
+                    console.log('📤 Données sortie préparées:', sortieData);
+                    
+                    const { data, error } = await window.supabaseDB.addSortie(sortieData);
+                    
+                    if (error) {
+                        console.error('Erreur lors de l\'ajout de la sortie:', error);
+                        alert('Erreur lors de l\'ajout de la sortie: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ Sortie ajoutée avec succès:', data);
+                    alert('✅ Sortie enregistrée avec succès !');
+                    
+                    // Mettre à jour le stock de l'article
+                    if (article) {
+                        const newQuantite = article.quantite - sortieData.quantite;
+                        await window.supabaseDB.updateArticle(sortieData.article_id, { quantite: newQuantite });
+                    }
+                    
+                    // Recharger les données
+                    await reloadAllData();
+                    
+                    // Réinitialiser le formulaire
+                    sortieFormRef.current = { article_id: '', quantite: '', date: '', motif: '' };
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'ajout de la sortie:', error);
+                    alert('Erreur lors de l\'ajout de la sortie: ' + error.message);
+                }
+            };
+
+            const handleAddCommande = async () => {
+                try {
+                    console.log('📋 Ajout commande:', commandeFormRef.current);
+                    
+                    if (!commandeFormRef.current.article_nom || !commandeFormRef.current.quantite) {
+                        alert('Veuillez remplir tous les champs obligatoires.');
+                        return;
+                    }
+                    
+                    // Trouver l'ID du chantier à partir du nom
+                    const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                    const chantier = chantiers.find(c => c.nom === userChantier);
+                    const chantier_id = chantier ? chantier.id : null;
+                    
+                    if (!chantier_id) {
+                        alert('Erreur: Impossible de déterminer le chantier.');
+                        return;
+                    }
+                    
+                    const commandeData = {
+                        chantier_id: chantier_id,
+                        article_nom: commandeFormRef.current.article_nom,
+                        quantite: parseInt(commandeFormRef.current.quantite),
+                        message: commandeFormRef.current.message || null,
+                        pointeur_matricule: parseInt(currentUser.matricule)
+                    };
+                    
+                    console.log('📋 Données commande préparées:', commandeData);
+                    
+                    const { data, error } = await window.supabaseDB.addCommande(commandeData);
+                    
+                    if (error) {
+                        console.error('Erreur lors de l\'ajout de la commande:', error);
+                        alert('Erreur lors de l\'ajout de la commande: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ Commande ajoutée avec succès:', data);
+                    alert('✅ Commande envoyée avec succès !');
+                    
+                    // Recharger les données
+                    await reloadAllData();
+                    
+                    // Réinitialiser le formulaire
+                    commandeFormRef.current = { article_nom: '', quantite: '', message: '' };
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'ajout de la commande:', error);
+                    alert('Erreur lors de l\'ajout de la commande: ' + error.message);
+                }
+            };
+
+            const handleDownloadBonSortie = (sortie) => {
+                try {
+                    const article = articles.find(a => a.id === sortie.article_id);
+                    const chantier = chantiers.find(c => c.id === sortie.chantier_id);
+                    
+                    const bonSortie = {
+                        numero: `BS-${sortie.id}`,
+                        date: new Date(sortie.date_sortie).toLocaleDateString('fr-FR'),
+                        heure: new Date(sortie.date_sortie).toLocaleTimeString('fr-FR'),
+                        chantier: chantier?.nom || 'Chantier inconnu',
+                        article: article?.nom || 'Article inconnu',
+                        quantite: sortie.quantite,
+                        motif: sortie.motif || 'Non spécifié',
+                        pointeur: currentUser.nom
+                    };
+                    
+                    // Créer le contenu du bon de sortie
+                    const content = `
+BON DE SORTIE
+
+Numéro: ${bonSortie.numero}
+Date: ${bonSortie.date}
+Heure: ${bonSortie.heure}
+
+CHANTIER: ${bonSortie.chantier}
+POINTEUR: ${bonSortie.pointeur}
+
+ARTICLE: ${bonSortie.article}
+QUANTITÉ: ${bonSortie.quantite}
+MOTIF: ${bonSortie.motif}
+
+Signature: _________________
+                    `.trim();
+                    
+                    // Créer et télécharger le fichier
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bon-sortie-${bonSortie.numero}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    console.log('📄 Bon de sortie téléchargé:', bonSortie);
+                    
+                } catch (error) {
+                    console.error('Erreur lors du téléchargement du bon de sortie:', error);
+                    alert('Erreur lors du téléchargement du bon de sortie');
+                }
+            };
+
             // Composant Stock
             function Stock() {
                 const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
@@ -864,34 +1166,334 @@
                                     )}
 
                                     {activePointeurTab === 'entrees' && (
-                                        <div className="space-y-4">
+                                        <div className="space-y-6">
                                             <h3 className="text-lg font-semibold text-gray-800">Saisir une entrée</h3>
-                                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                                <p className="text-green-800 text-sm">
-                                                    <strong>💡 Note :</strong> Cette fonctionnalité sera bientôt disponible.
-                                                </p>
+                                            
+                                            {/* Formulaire d'entrée */}
+                                            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                                                <h4 className="font-semibold text-green-800 mb-4">📥 Nouvelle entrée</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Article</label>
+                                                        <select
+                                                            defaultValue=""
+                                                            onBlur={(e) => entreeFormRef.current.article_id = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                        >
+                                                            <option value="">Sélectionner un article</option>
+                                                            {articles.filter(article => {
+                                                                const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                                const chantier = chantiers.find(c => c.nom === userChantier);
+                                                                return chantier && article.chantier_id === chantier.id;
+                                                            }).map(article => (
+                                                                <option key={article.id} value={article.id}>
+                                                                    {article.icone} {article.nom}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            defaultValue=""
+                                                            onBlur={(e) => entreeFormRef.current.quantite = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                            placeholder="Quantité reçue"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Date d'entrée</label>
+                                                        <input
+                                                            type="datetime-local"
+                                                            defaultValue={new Date().toISOString().slice(0, 16)}
+                                                            onBlur={(e) => entreeFormRef.current.date = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Bon d'entrée (URL)</label>
+                                                        <input
+                                                            type="url"
+                                                            defaultValue=""
+                                                            onBlur={(e) => entreeFormRef.current.bon_entree = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                            placeholder="https://..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4">
+                                                    <button
+                                                        onClick={handleAddEntree}
+                                                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                    >
+                                                        📥 Enregistrer l'entrée
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Historique des entrées */}
+                                            <div className="bg-white border border-gray-200 rounded-lg p-6">
+                                                <h4 className="font-semibold text-gray-800 mb-4">📋 Historique des entrées</h4>
+                                                {entrees.filter(entree => {
+                                                    const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                    const chantier = chantiers.find(c => c.nom === userChantier);
+                                                    return chantier && entree.chantier_id === chantier.id;
+                                                }).length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {entrees.filter(entree => {
+                                                            const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                            const chantier = chantiers.find(c => c.nom === userChantier);
+                                                            return chantier && entree.chantier_id === chantier.id;
+                                                        }).map(entree => {
+                                                            const article = articles.find(a => a.id === entree.article_id);
+                                                            return (
+                                                                <div key={entree.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                                    <div className="flex items-center space-x-3">
+                                                                        <span className="text-lg">{article?.icone || '📦'}</span>
+                                                                        <div>
+                                                                            <p className="font-medium text-gray-800">{article?.nom || 'Article inconnu'}</p>
+                                                                            <p className="text-sm text-gray-500">
+                                                                                {new Date(entree.date_entree).toLocaleDateString('fr-FR')} à {new Date(entree.date_entree).toLocaleTimeString('fr-FR')}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <div className="text-lg font-bold text-green-600">+{entree.quantite}</div>
+                                                                        {entree.bon_entree_url && (
+                                                                            <a href={entree.bon_entree_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                                                                                Voir bon d'entrée
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 text-center py-4">Aucune entrée enregistrée</p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
 
                                     {activePointeurTab === 'sorties' && (
-                                        <div className="space-y-4">
+                                        <div className="space-y-6">
                                             <h3 className="text-lg font-semibold text-gray-800">Saisir une sortie</h3>
-                                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                                <p className="text-red-800 text-sm">
-                                                    <strong>💡 Note :</strong> Cette fonctionnalité sera bientôt disponible.
-                                                </p>
+                                            
+                                            {/* Formulaire de sortie */}
+                                            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                                                <h4 className="font-semibold text-red-800 mb-4">📤 Nouvelle sortie</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Article</label>
+                                                        <select
+                                                            defaultValue=""
+                                                            onBlur={(e) => sortieFormRef.current.article_id = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                        >
+                                                            <option value="">Sélectionner un article</option>
+                                                            {articles.filter(article => {
+                                                                const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                                const chantier = chantiers.find(c => c.nom === userChantier);
+                                                                return chantier && article.chantier_id === chantier.id && article.quantite > 0;
+                                                            }).map(article => (
+                                                                <option key={article.id} value={article.id}>
+                                                                    {article.icone} {article.nom} (Stock: {article.quantite})
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            defaultValue=""
+                                                            onBlur={(e) => sortieFormRef.current.quantite = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                            placeholder="Quantité sortie"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Date de sortie</label>
+                                                        <input
+                                                            type="datetime-local"
+                                                            defaultValue={new Date().toISOString().slice(0, 16)}
+                                                            onBlur={(e) => sortieFormRef.current.date = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Motif de sortie</label>
+                                                        <input
+                                                            type="text"
+                                                            defaultValue=""
+                                                            onBlur={(e) => sortieFormRef.current.motif = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                            placeholder="Ex: Utilisation chantier, Transfert..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4">
+                                                    <button
+                                                        onClick={handleAddSortie}
+                                                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                    >
+                                                        📤 Enregistrer la sortie
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Historique des sorties */}
+                                            <div className="bg-white border border-gray-200 rounded-lg p-6">
+                                                <h4 className="font-semibold text-gray-800 mb-4">📋 Historique des sorties</h4>
+                                                {sorties.filter(sortie => {
+                                                    const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                    const chantier = chantiers.find(c => c.nom === userChantier);
+                                                    return chantier && sortie.chantier_id === chantier.id;
+                                                }).length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {sorties.filter(sortie => {
+                                                            const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                            const chantier = chantiers.find(c => c.nom === userChantier);
+                                                            return chantier && sortie.chantier_id === chantier.id;
+                                                        }).map(sortie => {
+                                                            const article = articles.find(a => a.id === sortie.article_id);
+                                                            return (
+                                                                <div key={sortie.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                                    <div className="flex items-center space-x-3">
+                                                                        <span className="text-lg">{article?.icone || '📦'}</span>
+                                                                        <div>
+                                                                            <p className="font-medium text-gray-800">{article?.nom || 'Article inconnu'}</p>
+                                                                            <p className="text-sm text-gray-500">
+                                                                                {new Date(sortie.date_sortie).toLocaleDateString('fr-FR')} à {new Date(sortie.date_sortie).toLocaleTimeString('fr-FR')}
+                                                                            </p>
+                                                                            {sortie.motif && (
+                                                                                <p className="text-xs text-gray-400">Motif: {sortie.motif}</p>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <div className="text-lg font-bold text-red-600">-{sortie.quantite}</div>
+                                                                        <button
+                                                                            onClick={() => handleDownloadBonSortie(sortie)}
+                                                                            className="text-xs text-blue-600 hover:underline"
+                                                                        >
+                                                                            📄 Télécharger bon de sortie
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 text-center py-4">Aucune sortie enregistrée</p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
 
                                     {activePointeurTab === 'commandes' && (
-                                        <div className="space-y-4">
+                                        <div className="space-y-6">
                                             <h3 className="text-lg font-semibold text-gray-800">Passer une commande</h3>
-                                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                                                <p className="text-purple-800 text-sm">
-                                                    <strong>💡 Note :</strong> Cette fonctionnalité sera bientôt disponible.
-                                                </p>
+                                            
+                                            {/* Formulaire de commande */}
+                                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                                                <h4 className="font-semibold text-purple-800 mb-4">📋 Nouvelle commande</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'article</label>
+                                                        <input
+                                                            type="text"
+                                                            defaultValue=""
+                                                            onBlur={(e) => commandeFormRef.current.article_nom = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                            placeholder="Ex: Ciment, Fer à béton..."
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Quantité demandée</label>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            defaultValue=""
+                                                            onBlur={(e) => commandeFormRef.current.quantite = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                            placeholder="Quantité"
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Message (optionnel)</label>
+                                                        <textarea
+                                                            defaultValue=""
+                                                            onBlur={(e) => commandeFormRef.current.message = e.target.value}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                            rows="3"
+                                                            placeholder="Précisions sur la commande, urgence, etc."
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4">
+                                                    <button
+                                                        onClick={handleAddCommande}
+                                                        className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                    >
+                                                        📋 Envoyer la commande
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Historique des commandes */}
+                                            <div className="bg-white border border-gray-200 rounded-lg p-6">
+                                                <h4 className="font-semibold text-gray-800 mb-4">📋 Mes commandes</h4>
+                                                {commandes.filter(commande => {
+                                                    const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                    const chantier = chantiers.find(c => c.nom === userChantier);
+                                                    return chantier && commande.chantier_id === chantier.id;
+                                                }).length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {commandes.filter(commande => {
+                                                            const userChantier = currentUser.role === 'admin' ? null : currentUser.chantier;
+                                                            const chantier = chantiers.find(c => c.nom === userChantier);
+                                                            return chantier && commande.chantier_id === chantier.id;
+                                                        }).map(commande => (
+                                                            <div key={commande.id} className="p-4 bg-gray-50 rounded-lg border-l-4 border-purple-500">
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <div className="flex items-center space-x-3">
+                                                                        <span className="text-lg">📦</span>
+                                                                        <div>
+                                                                            <p className="font-medium text-gray-800">{commande.article_nom}</p>
+                                                                            <p className="text-sm text-gray-500">
+                                                                                {new Date(commande.created_at).toLocaleDateString('fr-FR')} à {new Date(commande.created_at).toLocaleTimeString('fr-FR')}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <div className="text-lg font-bold text-purple-600">{commande.quantite}</div>
+                                                                        <span className={`text-xs px-2 py-1 rounded-full ${
+                                                                            commande.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
+                                                                            commande.statut === 'approuvee' ? 'bg-green-100 text-green-800' :
+                                                                            'bg-red-100 text-red-800'
+                                                                        }`}>
+                                                                            {commande.statut === 'en_attente' ? '⏳ En attente' :
+                                                                             commande.statut === 'approuvee' ? '✅ Approuvée' :
+                                                                             '❌ Rejetée'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                {commande.message && (
+                                                                    <div className="mt-2 p-2 bg-white rounded border">
+                                                                        <p className="text-sm text-gray-600">{commande.message}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-gray-500 text-center py-4">Aucune commande enregistrée</p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
