@@ -465,11 +465,14 @@
                 try {
                     console.log('📦 Ajout article:', articleFormRef.current);
                     
-                    // Convertir la quantité en nombre
+                    // Convertir la quantité en nombre et gérer chantier_id vide
                     const articleData = {
                         ...articleFormRef.current,
-                        quantite: parseInt(articleFormRef.current.quantite) || 0
+                        quantite: parseInt(articleFormRef.current.quantite) || 0,
+                        chantier_id: articleFormRef.current.chantier_id === '' ? null : parseInt(articleFormRef.current.chantier_id)
                     };
+                    
+                    console.log('📦 Données article préparées:', articleData);
                     
                     const { data, error } = await window.supabaseDB.addArticle(articleData);
                     
