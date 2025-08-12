@@ -224,7 +224,7 @@
     
     <!-- App Component -->
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useCallback } = React;
 
         console.log('🚀 NE TRAVAUX - Gestion de Stock');
 
@@ -304,8 +304,17 @@
             const [newChantier, setNewChantier] = useState({ nom: '', description: '', icone: '🏗️' });
             const [newArticle, setNewArticle] = useState({ nom: '', quantite: '', icone: '📦', chantier_id: '' });
 
+            // Fonctions de mise à jour stables pour éviter les re-renders
+            const updateChantierField = useCallback((field, value) => {
+                setNewChantier(prev => ({ ...prev, [field]: value }));
+            }, []);
+
+            const updateArticleField = useCallback((field, value) => {
+                setNewArticle(prev => ({ ...prev, [field]: value }));
+            }, []);
+
             // Fonction pour recharger TOUTES les données depuis Supabase
-            const reloadAllData = async () => {
+            const reloadAllData = useCallback(async () => {
                 try {
                     console.log('🔄 Rechargement complet des données depuis Supabase...');
                     console.log('🔄 Vérification de supabaseDB:', !!window.supabaseDB);
@@ -335,14 +344,14 @@
                     console.error('❌ Erreur lors du rechargement:', error);
                     setLoading(false);
                 }
-            };
+            }, []);
 
             // Charger les données au démarrage
             useEffect(() => {
                 if (currentUser) {
                     reloadAllData();
                 }
-            }, [currentUser]);
+            }, [currentUser, reloadAllData]);
 
             const handleLogin = async (matricule, password) => {
                 try {
@@ -612,14 +621,14 @@
                                     type="text"
                                     placeholder="Nom du chantier"
                                     value={newChantier.nom}
-                                    onChange={(e) => setNewChantier(prev => ({...prev, nom: e.target.value}))}
+                                    onChange={(e) => updateChantierField('nom', e.target.value)}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Description"
                                     value={newChantier.description}
-                                    onChange={(e) => setNewChantier(prev => ({...prev, description: e.target.value}))}
+                                    onChange={(e) => updateChantierField('description', e.target.value)}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
@@ -669,19 +678,19 @@
                                     type="text"
                                     placeholder="Nom de l'article"
                                     value={newArticle.nom}
-                                    onChange={(e) => setNewArticle(prev => ({...prev, nom: e.target.value}))}
+                                    onChange={(e) => updateArticleField('nom', e.target.value)}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <input
                                     type="number"
                                     placeholder="Quantité initiale"
                                     value={newArticle.quantite}
-                                    onChange={(e) => setNewArticle(prev => ({...prev, quantite: e.target.value}))}
+                                    onChange={(e) => updateArticleField('quantite', e.target.value)}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <select
                                     value={newArticle.chantier_id}
-                                    onChange={(e) => setNewArticle(prev => ({...prev, chantier_id: e.target.value}))}
+                                    onChange={(e) => updateArticleField('chantier_id', e.target.value)}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Sélectionner un chantier</option>
