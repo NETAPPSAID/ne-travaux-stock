@@ -205,6 +205,43 @@
                                 console.error('❌ [SUPABASE] Erreur deleteArticle:', err);
                                 return { data: null, error: err }
                             }
+                        },
+
+                        // ===== GESTION DES UTILISATEURS =====
+                        async addUser(user) {
+                            try {
+                                console.log('👤 [SUPABASE] Tentative d\'ajout utilisateur:', user);
+                                const userData = {
+                                    ...user,
+                                    role: 'pointeur',
+                                    matricule: parseInt(user.matricule)
+                                };
+                                const { data, error } = await supabase
+                                    .from('users')
+                                    .insert(userData)
+                                    .select()
+                                console.log('👤 [SUPABASE] Résultat ajout utilisateur:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur addUser:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async deleteUser(id) {
+                            try {
+                                console.log('🗑️ [SUPABASE] Début suppression utilisateur ID:', id);
+                                const { data, error } = await supabase
+                                    .from('users')
+                                    .delete()
+                                    .eq('id', id)
+                                    .select()
+                                console.log('🗑️ [SUPABASE] Résultat suppression utilisateur:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur deleteUser:', err);
+                                return { data: null, error: err }
+                            }
                         }
                     }
 
@@ -307,6 +344,7 @@
             // Utiliser useRef pour éviter les re-renders
             const chantierFormRef = useRef({ nom: '', description: '', icone: '🏗️' });
             const articleFormRef = useRef({ nom: '', quantite: '', icone: '📦', chantier_id: '' });
+            const userFormRef = useRef({ nom: '', matricule: '', password: '', chantier_id: '' });
 
             // Fonction pour recharger TOUTES les données depuis Supabase
             const reloadAllData = useCallback(async () => {
@@ -520,6 +558,59 @@
                 } catch (error) {
                     console.error('Erreur lors de la suppression de l\'article:', error);
                     alert('Erreur lors de la suppression de l\'article: ' + error.message);
+                }
+            };
+
+            const handleAddUser = async () => {
+                try {
+                    console.log('👤 Ajout utilisateur:', userFormRef.current);
+                    
+                    const { data, error } = await window.supabaseDB.addUser(userFormRef.current);
+                    
+                    if (error) {
+                        console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
+                        alert('Erreur lors de l\'ajout de l\'utilisateur: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ Utilisateur ajouté avec succès:', data);
+                    
+                    // Recharger les données depuis Supabase
+                    await reloadAllData();
+                    
+                    // Réinitialiser le formulaire
+                    userFormRef.current = { nom: '', matricule: '', password: '', chantier_id: '' };
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
+                    alert('Erreur lors de l\'ajout de l\'utilisateur: ' + error.message);
+                }
+            };
+
+            const handleDeleteUser = async (id) => {
+                try {
+                    console.log('🗑️ Suppression utilisateur ID:', id);
+                    console.log('🗑️ Vérification de supabaseDB:', !!window.supabaseDB);
+                    
+                    const { data, error } = await window.supabaseDB.deleteUser(id);
+                    
+                    console.log('🗑️ Résultat suppression utilisateur:', { data, error });
+                    
+                    if (error) {
+                        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+                        alert('Erreur lors de la suppression de l\'utilisateur: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ Utilisateur supprimé avec succès:', data);
+                    
+                    // Recharger les données depuis Supabase
+                    console.log('🔄 Rechargement après suppression utilisateur...');
+                    await reloadAllData();
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+                    alert('Erreur lors de la suppression de l\'utilisateur: ' + error.message);
                 }
             };
 
@@ -893,6 +984,92 @@
                                                     </div>
                                                     <button
                                                         onClick={() => handleDeleteArticle(article.id)}
+                                                        className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Gestion des utilisateurs */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <h3 className="text-xl font-semibold mb-4">Gestion des Utilisateurs</h3>
+                            
+                            <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <p className="text-purple-800 text-sm">
+                                    <strong>💡 Note :</strong> Créez des comptes pointeurs et affectez-les aux chantiers.
+                                </p>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="Nom complet"
+                                    defaultValue=""
+                                    onBlur={(e) => userFormRef.current.nom = e.target.value}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Matricule"
+                                    defaultValue=""
+                                    onBlur={(e) => userFormRef.current.matricule = e.target.value}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <input
+                                    type="password"
+                                    placeholder="Mot de passe"
+                                    defaultValue=""
+                                    onBlur={(e) => userFormRef.current.password = e.target.value}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <select
+                                    defaultValue=""
+                                    onChange={(e) => userFormRef.current.chantier_id = e.target.value}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                >
+                                    <option value="">Sélectionner un chantier</option>
+                                    {chantiers.map(chantier => (
+                                        <option key={chantier.id} value={chantier.id}>{chantier.nom}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <button
+                                onClick={handleAddUser}
+                                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                                disabled={chantiers.length === 0}
+                            >
+                                {chantiers.length === 0 ? 'Créez d\'abord un chantier' : 'Créer un pointeur'}
+                            </button>
+
+                            {loading && (
+                                <div className="mt-6 text-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Chargement...</p>
+                                </div>
+                            )}
+
+                            {!loading && (
+                                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {users.filter(user => user.role === 'pointeur').map(user => {
+                                        const chantier = chantiers.find(c => c.id === user.chantier_id);
+                                        return (
+                                            <div key={user.id} className="border rounded-lg p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{user.nom}</h4>
+                                                        <p className="text-sm text-gray-600">Matricule: {user.matricule}</p>
+                                                        <p className="text-sm text-gray-500">Rôle: Pointeur</p>
+                                                        {chantier && <p className="text-sm text-purple-600">{chantier.nom}</p>}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(user.id)}
                                                         className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
                                                     >
                                                         Supprimer
