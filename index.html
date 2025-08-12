@@ -275,6 +275,7 @@
             const reloadAllData = async () => {
                 try {
                     console.log('🔄 Rechargement complet des données depuis Supabase...');
+                    console.log('🔄 Vérification de supabaseDB:', !!window.supabaseDB);
                     setLoading(true);
                     
                     // Vider d'abord les données locales
@@ -285,17 +286,23 @@
                     // Attendre un peu pour s'assurer que les données sont vidées
                     await new Promise(resolve => setTimeout(resolve, 100));
                     
-                    // Recharger depuis Supabase
-                    const [articlesData, usersData, chantiersData] = await Promise.all([
-                        window.supabaseDB.getArticles(),
-                        window.supabaseDB.getUsers(),
-                        window.supabaseDB.getChantiers()
-                    ]);
+                    // Recharger depuis Supabase avec vérification
+                    console.log('🔄 Appel de getArticles...');
+                    const articlesData = await window.supabaseDB.getArticles();
+                    console.log('🔄 Appel de getUsers...');
+                    const usersData = await window.supabaseDB.getUsers();
+                    console.log('🔄 Appel de getChantiers...');
+                    const chantiersData = await window.supabaseDB.getChantiers();
                     
                     console.log('📊 Données rechargées:', {
                         articles: articlesData?.length || 0,
                         users: usersData?.length || 0,
                         chantiers: chantiersData?.length || 0
+                    });
+                    
+                    console.log('📊 Détail des données:', {
+                        articles: articlesData,
+                        chantiers: chantiersData
                     });
                     
                     // Mettre à jour les états
@@ -406,8 +413,11 @@
             const handleDeleteChantier = async (id) => {
                 try {
                     console.log('🗑️ Suppression chantier ID:', id);
+                    console.log('🗑️ Vérification de supabaseDB:', !!window.supabaseDB);
                     
                     const { data, error } = await window.supabaseDB.deleteChantier(id);
+                    
+                    console.log('🗑️ Résultat suppression chantier:', { data, error });
                     
                     if (error) {
                         console.error('Erreur lors de la suppression du chantier:', error);
@@ -418,6 +428,7 @@
                     console.log('✅ Chantier supprimé avec succès:', data);
                     
                     // Recharger les données depuis Supabase
+                    console.log('🔄 Rechargement après suppression chantier...');
                     await reloadAllData();
                     
                 } catch (error) {
@@ -455,8 +466,11 @@
             const handleDeleteArticle = async (id) => {
                 try {
                     console.log('🗑️ Suppression article ID:', id);
+                    console.log('🗑️ Vérification de supabaseDB:', !!window.supabaseDB);
                     
                     const { data, error } = await window.supabaseDB.deleteArticle(id);
+                    
+                    console.log('🗑️ Résultat suppression article:', { data, error });
                     
                     if (error) {
                         console.error('Erreur lors de la suppression de l\'article:', error);
@@ -467,6 +481,7 @@
                     console.log('✅ Article supprimé avec succès:', data);
                     
                     // Recharger les données depuis Supabase
+                    console.log('🔄 Rechargement après suppression article...');
                     await reloadAllData();
                     
                 } catch (error) {
