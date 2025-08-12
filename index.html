@@ -9,6 +9,28 @@
     <script>
         console.log('🎯 FICHIER INDEX.HTML CHARGÉ - Version corrigée');
         console.log('🎯 URL actuelle:', window.location.href);
+        
+        // FORCER LA MISE À JOUR DU SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    console.log('🔄 Mise à jour forcée du Service Worker...');
+                    registration.update();
+                }
+            });
+            
+            // VIDER LES CACHES EXISTANTS
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    return Promise.all(
+                        cacheNames.map(function(cacheName) {
+                            console.log('🗑️ Suppression du cache:', cacheName);
+                            return caches.delete(cacheName);
+                        })
+                    );
+                });
+            }
+        }
     </script>
     
     <!-- Tailwind CSS -->
