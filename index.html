@@ -565,6 +565,15 @@
                 try {
                     console.log('👤 Ajout utilisateur:', userFormRef.current);
                     
+                    // Vérifier si le matricule existe déjà
+                    const matricule = parseInt(userFormRef.current.matricule);
+                    const existingUser = users.find(user => user.matricule === matricule);
+                    
+                    if (existingUser) {
+                        alert('Erreur: Un utilisateur avec ce matricule existe déjà. Veuillez utiliser un matricule différent.');
+                        return;
+                    }
+                    
                     const { data, error } = await window.supabaseDB.addUser(userFormRef.current);
                     
                     if (error) {
@@ -574,6 +583,7 @@
                     }
                     
                     console.log('✅ Utilisateur ajouté avec succès:', data);
+                    alert('✅ Pointeur créé avec succès !');
                     
                     // Recharger les données depuis Supabase
                     await reloadAllData();
@@ -1003,6 +1013,9 @@
                             <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
                                 <p className="text-purple-800 text-sm">
                                     <strong>💡 Note :</strong> Créez des comptes pointeurs et affectez-les aux chantiers.
+                                </p>
+                                <p className="text-purple-700 text-xs mt-1">
+                                    <strong>💡 Conseil :</strong> Utilisez un matricule unique (ex: 101, 102, 103...)
                                 </p>
                             </div>
                             
