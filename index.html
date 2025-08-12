@@ -1251,9 +1251,9 @@
                     doc.setFont('helvetica', 'bold');
                     doc.text('NE TRAVAUX', 105, 20, { align: 'center' });
                     
-                    // Logo de l'entreprise
+                    // Logo ONE de l'entreprise
                     try {
-                        // Essayer de charger le logo existant
+                        // Essayer de charger le logo ONE
                         const logoImg = new Image();
                         logoImg.crossOrigin = 'anonymous';
                         logoImg.onload = function() {
@@ -1265,24 +1265,27 @@
                             ctx.drawImage(logoImg, 0, 0);
                             
                             const logoDataUrl = canvas.toDataURL('image/png');
-                            doc.addImage(logoDataUrl, 'PNG', 15, 15, 20, 20);
+                            // Logo ONE plus grand et mieux positionné
+                            doc.addImage(logoDataUrl, 'PNG', 15, 10, 30, 30);
                         };
                         logoImg.onerror = function() {
-                            // Fallback : logo placeholder si l'image ne charge pas
-                            doc.setFillColor(59, 130, 246); // Bleu
-                            doc.circle(20, 20, 8, 'F');
+                            // Fallback : logo ONE stylisé si l'image ne charge pas
+                            doc.setFillColor(59, 130, 246); // Bleu ONE
+                            doc.circle(20, 20, 10, 'F');
                             doc.setTextColor(255, 255, 255);
-                            doc.setFontSize(12);
-                            doc.text('NE', 20, 24, { align: 'center' });
+                            doc.setFontSize(14);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('ONE', 20, 25, { align: 'center' });
                         };
-                        logoImg.src = './logo.jpg.jpg';
+                        logoImg.src = './logo-one.png';
                     } catch (error) {
                         // Fallback en cas d'erreur
-                        doc.setFillColor(59, 130, 246); // Bleu
-                        doc.circle(20, 20, 8, 'F');
+                        doc.setFillColor(59, 130, 246); // Bleu ONE
+                        doc.circle(20, 20, 10, 'F');
                         doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(12);
-                        doc.text('NE', 20, 24, { align: 'center' });
+                        doc.setFontSize(14);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('ONE', 20, 25, { align: 'center' });
                     }
                     
                     // Titre du document
