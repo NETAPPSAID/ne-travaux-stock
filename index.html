@@ -302,7 +302,7 @@
             const [articles, setArticles] = useState([]);
             const [loading, setLoading] = useState(false);
             const [newChantier, setNewChantier] = useState({ nom: '', description: '', icone: '🏗️' });
-            const [newArticle, setNewArticle] = useState({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
+            const [newArticle, setNewArticle] = useState({ nom: '', quantite: '', icone: '📦', chantier_id: '' });
 
             // Fonction pour recharger TOUTES les données depuis Supabase
             const reloadAllData = async () => {
@@ -310,14 +310,6 @@
                     console.log('🔄 Rechargement complet des données depuis Supabase...');
                     console.log('🔄 Vérification de supabaseDB:', !!window.supabaseDB);
                     setLoading(true);
-                    
-                    // Vider d'abord les données locales
-                    setArticles([]);
-                    setUsers([]);
-                    setChantiers([]);
-                    
-                    // Attendre un peu pour s'assurer que les données sont vidées
-                    await new Promise(resolve => setTimeout(resolve, 100));
                     
                     // Recharger depuis Supabase avec vérification
                     console.log('🔄 Appel de getArticles...');
@@ -331,11 +323,6 @@
                         articles: articlesData?.length || 0,
                         users: usersData?.length || 0,
                         chantiers: chantiersData?.length || 0
-                    });
-                    
-                    console.log('📊 Détail des données:', {
-                        articles: articlesData,
-                        chantiers: chantiersData
                     });
                     
                     // Mettre à jour les états
@@ -474,7 +461,13 @@
                 try {
                     console.log('📦 Ajout article:', newArticle);
                     
-                    const { data, error } = await window.supabaseDB.addArticle(newArticle);
+                    // Convertir la quantité en nombre
+                    const articleData = {
+                        ...newArticle,
+                        quantite: parseInt(newArticle.quantite) || 0
+                    };
+                    
+                    const { data, error } = await window.supabaseDB.addArticle(articleData);
                     
                     if (error) {
                         console.error('Erreur lors de l\'ajout de l\'article:', error);
@@ -488,7 +481,7 @@
                     await reloadAllData();
                     
                     // Réinitialiser le formulaire
-                    setNewArticle({ nom: '', quantite: 0, icone: '📦', chantier_id: '' });
+                    setNewArticle({ nom: '', quantite: '', icone: '📦', chantier_id: '' });
                     
                 } catch (error) {
                     console.error('Erreur lors de l\'ajout de l\'article:', error);
@@ -618,15 +611,15 @@
                                 <input
                                     type="text"
                                     placeholder="Nom du chantier"
-                                    value={newChantier.nom ?? ''}
-                                    onChange={(e) => setNewChantier({...newChantier, nom: e.target.value})}
+                                    value={newChantier.nom}
+                                    onChange={(e) => setNewChantier(prev => ({...prev, nom: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Description"
-                                    value={newChantier.description ?? ''}
-                                    onChange={(e) => setNewChantier({...newChantier, description: e.target.value})}
+                                    value={newChantier.description}
+                                    onChange={(e) => setNewChantier(prev => ({...prev, description: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
@@ -675,20 +668,20 @@
                                 <input
                                     type="text"
                                     placeholder="Nom de l'article"
-                                    value={newArticle.nom ?? ''}
-                                    onChange={(e) => setNewArticle({...newArticle, nom: e.target.value})}
+                                    value={newArticle.nom}
+                                    onChange={(e) => setNewArticle(prev => ({...prev, nom: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <input
                                     type="number"
                                     placeholder="Quantité initiale"
-                                    value={newArticle.quantite ?? ''}
-                                    onChange={(e) => setNewArticle({...newArticle, quantite: parseInt(e.target.value) || 0})}
+                                    value={newArticle.quantite}
+                                    onChange={(e) => setNewArticle(prev => ({...prev, quantite: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <select
-                                    value={newArticle.chantier_id ?? ''}
-                                    onChange={(e) => setNewArticle({...newArticle, chantier_id: e.target.value})}
+                                    value={newArticle.chantier_id}
+                                    onChange={(e) => setNewArticle(prev => ({...prev, chantier_id: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Sélectionner un chantier</option>
