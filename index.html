@@ -508,6 +508,11 @@
             const [sorties, setSorties] = useState([]);
             const [commandes, setCommandes] = useState([]);
             
+            // États pour les filtres
+            const [filterChantier, setFilterChantier] = useState('');
+            const [filterPointeur, setFilterPointeur] = useState('');
+            const [filterDate, setFilterDate] = useState('');
+            
             // Utiliser useRef pour éviter les re-renders
             const chantierFormRef = useRef({ nom: '', description: '', icone: '🏗️' });
             const articleFormRef = useRef({ nom: '', quantite: '', icone: '📦', chantier_id: '' });
@@ -1055,6 +1060,126 @@ Signature: _________________
                 } catch (error) {
                     console.error('Erreur lors du téléchargement du bon de sortie:', error);
                     alert('Erreur lors du téléchargement du bon de sortie');
+                }
+            };
+
+            const handleUpdateCommandeStatus = async (id, statut) => {
+                try {
+                    console.log('📋 Mise à jour statut commande:', { id, statut });
+                    
+                    const { data, error } = await window.supabaseDB.updateCommandeStatus(id, statut);
+                    
+                    if (error) {
+                        console.error('Erreur lors de la mise à jour du statut:', error);
+                        alert('Erreur lors de la mise à jour du statut: ' + error.message);
+                        return;
+                    }
+                    
+                    console.log('✅ Statut commande mis à jour:', data);
+                    alert(`✅ Commande ${statut === 'approuvee' ? 'approuvée' : 'rejetée'} avec succès !`);
+                    
+                    // Recharger les données
+                    await reloadAllData();
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la mise à jour du statut:', error);
+                    alert('Erreur lors de la mise à jour du statut: ' + error.message);
+                }
+            };
+
+            const handleExportRapport = () => {
+                try {
+                    console.log('📄 Génération du rapport PDF...');
+                    
+                    // Filtrer les données selon les critères
+                    let entreesFiltrees = entrees;
+                    let sortiesFiltrees = sorties;
+                    let commandesFiltrees = commandes;
+                    
+                    if (filterChantier) {
+                        entreesFiltrees = entrees.filter(e => e.chantier_id === parseInt(filterChantier));
+                        sortiesFiltrees = sorties.filter(s => s.chantier_id === parseInt(filterChantier));
+                        commandesFiltrees = commandes.filter(c => c.chantier_id === parseInt(filterChantier));
+                    }
+                    
+                    if (filterPointeur) {
+                        entreesFiltrees = entreesFiltrees.filter(e => e.pointeur_matricule === parseInt(filterPointeur));
+                        sortiesFiltrees = sortiesFiltrees.filter(s => s.pointeur_matricule === parseInt(filterPointeur));
+                        commandesFiltrees = commandesFiltrees.filter(c => c.pointeur_matricule === parseInt(filterPointeur));
+                    }
+                    
+                    if (filterDate) {
+                        const dateFilter = new Date(filterDate);
+                        entreesFiltrees = entreesFiltrees.filter(e => 
+                            new Date(e.date_entree).toDateString() === dateFilter.toDateString()
+                        );
+                        sortiesFiltrees = sortiesFiltrees.filter(s => 
+                            new Date(s.date_sortie).toDateString() === dateFilter.toDateString()
+                        );
+                        commandesFiltrees = commandesFiltrees.filter(c => 
+                            new Date(c.created_at).toDateString() === dateFilter.toDateString()
+                        );
+                    }
+                    
+                    // Créer le contenu du rapport
+                    const rapportContent = `
+RAPPORT D'ACTIVITÉ - NE TRAVAUX
+Date: ${new Date().toLocaleDateString('fr-FR')}
+Heure: ${new Date().toLocaleTimeString('fr-FR')}
+
+${filterChantier ? `Chantier: ${chantiers.find(c => c.id === parseInt(filterChantier))?.nom || 'Inconnu'}` : 'Tous les chantiers'}
+${filterPointeur ? `Pointeur: ${users.find(u => u.matricule === parseInt(filterPointeur))?.nom || 'Inconnu'}` : 'Tous les pointeurs'}
+${filterDate ? `Date: ${filterDate}` : 'Toutes les dates'}
+
+=== RÉSUMÉ ===
+Entrées: ${entreesFiltrees.length}
+Sorties: ${sortiesFiltrees.length}
+Commandes: ${commandesFiltrees.length}
+
+=== DÉTAIL DES ENTREES ===
+${entreesFiltrees.map(entree => {
+    const article = articles.find(a => a.id === entree.article_id);
+    const chantier = chantiers.find(c => c.id === entree.chantier_id);
+    const pointeur = users.find(u => u.matricule === entree.pointeur_matricule);
+    return `- ${article?.nom || 'Article inconnu'} (${entree.quantite}) - ${chantier?.nom || 'Chantier inconnu'} - ${pointeur?.nom || 'Pointeur inconnu'} - ${new Date(entree.date_entree).toLocaleDateString('fr-FR')}`;
+}).join('\n')}
+
+=== DÉTAIL DES SORTIES ===
+${sortiesFiltrees.map(sortie => {
+    const article = articles.find(a => a.id === sortie.article_id);
+    const chantier = chantiers.find(c => c.id === sortie.chantier_id);
+    const pointeur = users.find(u => u.matricule === sortie.pointeur_matricule);
+    return `- ${article?.nom || 'Article inconnu'} (${sortie.quantite}) - ${chantier?.nom || 'Chantier inconnu'} - ${pointeur?.nom || 'Pointeur inconnu'} - ${new Date(sortie.date_sortie).toLocaleDateString('fr-FR')}`;
+}).join('\n')}
+
+=== DÉTAIL DES COMMANDES ===
+${commandesFiltrees.map(commande => {
+    const chantier = chantiers.find(c => c.id === commande.chantier_id);
+    const pointeur = users.find(u => u.matricule === commande.pointeur_matricule);
+    return `- ${commande.article_nom} (${commande.quantite}) - ${chantier?.nom || 'Chantier inconnu'} - ${pointeur?.nom || 'Pointeur inconnu'} - ${commande.statut} - ${new Date(commande.created_at).toLocaleDateString('fr-FR')}`;
+}).join('\n')}
+
+---
+Généré automatiquement par NE TRAVAUX - Gestion de Stock
+                    `.trim();
+                    
+                    // Créer et télécharger le fichier
+                    const blob = new Blob([rapportContent], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `rapport-ne-travaux-${new Date().toISOString().split('T')[0]}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    console.log('📄 Rapport exporté avec succès');
+                    alert('✅ Rapport exporté avec succès !');
+                    
+                } catch (error) {
+                    console.error('Erreur lors de l\'export du rapport:', error);
+                    alert('Erreur lors de l\'export du rapport: ' + error.message);
                 }
             };
 
@@ -1840,6 +1965,161 @@ Signature: _________________
                                             </div>
                                         );
                                     })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Historique et Rapports */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <h3 className="text-xl font-semibold mb-4">📊 Historique et Rapports</h3>
+                            
+                            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-blue-800 text-sm">
+                                    <strong>💡 Note :</strong> Consultez l'historique des opérations et générez des rapports.
+                                </p>
+                            </div>
+
+                            {/* Filtres */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <select
+                                    defaultValue=""
+                                    onChange={(e) => setFilterChantier(e.target.value)}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Tous les chantiers</option>
+                                    {chantiers.map(chantier => (
+                                        <option key={chantier.id} value={chantier.id}>{chantier.nom}</option>
+                                    ))}
+                                </select>
+                                <select
+                                    defaultValue=""
+                                    onChange={(e) => setFilterPointeur(e.target.value)}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Tous les pointeurs</option>
+                                    {users.filter(u => u.role === 'pointeur').map(user => (
+                                        <option key={user.matricule} value={user.matricule}>{user.nom}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="date"
+                                    onChange={(e) => setFilterDate(e.target.value)}
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    onClick={handleExportRapport}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                >
+                                    📄 Exporter PDF
+                                </button>
+                            </div>
+
+                            {/* Statistiques */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                    <div className="text-2xl font-bold text-green-600">{entrees.length}</div>
+                                    <div className="text-sm text-green-800">Entrées</div>
+                                </div>
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                                    <div className="text-2xl font-bold text-red-600">{sorties.length}</div>
+                                    <div className="text-sm text-red-800">Sorties</div>
+                                </div>
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                                    <div className="text-2xl font-bold text-purple-600">{commandes.filter(c => c.statut === 'en_attente').length}</div>
+                                    <div className="text-sm text-purple-800">Commandes en attente</div>
+                                </div>
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                                    <div className="text-2xl font-bold text-blue-600">{articles.length}</div>
+                                    <div className="text-sm text-blue-800">Articles</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Gestion des commandes */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <h3 className="text-xl font-semibold mb-4">📋 Gestion des Commandes</h3>
+                            
+                            <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                <p className="text-orange-800 text-sm">
+                                    <strong>💡 Note :</strong> Traitez les commandes des pointeurs et répondez à leurs messages.
+                                </p>
+                            </div>
+
+                            {loading && (
+                                <div className="text-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Chargement des commandes...</p>
+                                </div>
+                            )}
+
+                            {!loading && (
+                                <div className="space-y-4">
+                                    {commandes.length > 0 ? (
+                                        commandes.map(commande => {
+                                            const pointeur = users.find(u => u.matricule === commande.pointeur_matricule);
+                                            const chantier = chantiers.find(c => c.id === commande.chantier_id);
+                                            return (
+                                                <div key={commande.id} className="border rounded-lg p-4 bg-gray-50">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div>
+                                                            <h4 className="font-semibold text-lg">{commande.article_nom}</h4>
+                                                            <p className="text-sm text-gray-600">
+                                                                Quantité: <span className="font-semibold">{commande.quantite}</span>
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                Pointeur: <span className="font-semibold">{pointeur?.nom || 'Inconnu'}</span>
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                Chantier: <span className="font-semibold">{chantier?.nom || 'Inconnu'}</span>
+                                                            </p>
+                                                            <p className="text-xs text-gray-400">
+                                                                {new Date(commande.created_at).toLocaleDateString('fr-FR')} à {new Date(commande.created_at).toLocaleTimeString('fr-FR')}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className={`text-xs px-2 py-1 rounded-full ${
+                                                                commande.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
+                                                                commande.statut === 'approuvee' ? 'bg-green-100 text-green-800' :
+                                                                'bg-red-100 text-red-800'
+                                                            }`}>
+                                                                {commande.statut === 'en_attente' ? '⏳ En attente' :
+                                                                 commande.statut === 'approuvee' ? '✅ Approuvée' :
+                                                                 '❌ Rejetée'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {commande.message && (
+                                                        <div className="mb-3 p-3 bg-white rounded border">
+                                                            <p className="text-sm text-gray-700">{commande.message}</p>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {commande.statut === 'en_attente' && (
+                                                        <div className="flex space-x-2">
+                                                            <button
+                                                                onClick={() => handleUpdateCommandeStatus(commande.id, 'approuvee')}
+                                                                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                                                            >
+                                                                ✅ Approuver
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleUpdateCommandeStatus(commande.id, 'rejetee')}
+                                                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                                            >
+                                                                ❌ Rejeter
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <div className="text-4xl mb-2">📋</div>
+                                            <p className="text-gray-500">Aucune commande en attente</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
