@@ -10,9 +10,6 @@
         console.log('🎯 FICHIER INDEX.HTML CHARGÉ - Version corrigée');
         console.log('🎯 URL actuelle:', window.location.href);
         
-        // MESSAGE TRÈS VISIBLE POUR CONFIRMER
-        alert('🎯 INDEX.HTML CHARGÉ - Version corrigée avec Service Worker désactivé');
-        
         // FORCER LA MISE À JOUR DU SERVICE WORKER
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -621,16 +618,16 @@
                                 <input
                                     type="text"
                                     placeholder="Nom du chantier"
-                                    value={newChantier.nom || ''}
+                                    value={newChantier.nom ?? ''}
                                     onChange={(e) => setNewChantier({...newChantier, nom: e.target.value})}
-                                    className="px-4 py-2 border rounded-lg"
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Description"
-                                    value={newChantier.description || ''}
+                                    value={newChantier.description ?? ''}
                                     onChange={(e) => setNewChantier({...newChantier, description: e.target.value})}
-                                    className="px-4 py-2 border rounded-lg"
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
                             
@@ -678,21 +675,21 @@
                                 <input
                                     type="text"
                                     placeholder="Nom de l'article"
-                                    value={newArticle.nom || ''}
+                                    value={newArticle.nom ?? ''}
                                     onChange={(e) => setNewArticle({...newArticle, nom: e.target.value})}
-                                    className="px-4 py-2 border rounded-lg"
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <input
                                     type="number"
                                     placeholder="Quantité initiale"
-                                    value={newArticle.quantite || ''}
+                                    value={newArticle.quantite ?? ''}
                                     onChange={(e) => setNewArticle({...newArticle, quantite: parseInt(e.target.value) || 0})}
-                                    className="px-4 py-2 border rounded-lg"
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <select
-                                    value={newArticle.chantier_id || ''}
+                                    value={newArticle.chantier_id ?? ''}
                                     onChange={(e) => setNewArticle({...newArticle, chantier_id: e.target.value})}
-                                    className="px-4 py-2 border rounded-lg"
+                                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Sélectionner un chantier</option>
                                     {chantiers.map(chantier => (
