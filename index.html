@@ -124,14 +124,16 @@
 
                         async deleteChantier(id) {
                             try {
+                                console.log('🗑️ [SUPABASE] Début suppression chantier ID:', id);
                                 const { data, error } = await supabase
                                     .from('chantiers')
                                     .delete()
                                     .eq('id', id)
                                     .select()
+                                console.log('🗑️ [SUPABASE] Résultat suppression chantier:', { data, error });
                                 return { data, error }
                             } catch (err) {
-                                console.error('❌ Erreur deleteChantier:', err);
+                                console.error('❌ [SUPABASE] Erreur deleteChantier:', err);
                                 return { data: null, error: err }
                             }
                         },
@@ -165,14 +167,16 @@
 
                         async deleteArticle(id) {
                             try {
+                                console.log('🗑️ [SUPABASE] Début suppression article ID:', id);
                                 const { data, error } = await supabase
                                     .from('articles')
                                     .delete()
                                     .eq('id', id)
                                     .select()
+                                console.log('🗑️ [SUPABASE] Résultat suppression article:', { data, error });
                                 return { data, error }
                             } catch (err) {
-                                console.error('❌ Erreur deleteArticle:', err);
+                                console.error('❌ [SUPABASE] Erreur deleteArticle:', err);
                                 return { data: null, error: err }
                             }
                         }
@@ -180,6 +184,9 @@
 
                     console.log('✅ Supabase client intégré chargé avec succès')
                     console.log('✅ window.supabaseDB disponible:', !!window.supabaseDB)
+                    
+                    // DÉSACTIVER LA SYNCHRONISATION TEMPS RÉEL QUI INTERFÈRE
+                    console.log('⚠️ Synchronisation temps réel DÉSACTIVÉE pour éviter les conflits')
                     
                 } catch (error) {
                     console.error('❌ Erreur lors de la création du client Supabase:', error);
