@@ -604,11 +604,20 @@
                         console.log('👤 Données utilisateur:', userData);
                         
                         if (password === userData.password) {
+                            // Trouver le nom du chantier à partir de l'ID
+                            let chantierNom = 'Admin';
+                            if (userData.chantier_id) {
+                                // Charger les chantiers pour obtenir le nom
+                                const chantiersData = await window.supabaseDB.getChantiers();
+                                const chantier = chantiersData.find(c => c.id === userData.chantier_id);
+                                chantierNom = chantier ? chantier.nom : `Chantier ${userData.chantier_id}`;
+                            }
+                            
                             const formattedUser = {
                                 matricule: userData.matricule.toString(),
                                 nom: userData.nom,
                                 role: userData.role,
-                                chantier: userData.chantier_id ? `Chantier ${String.fromCharCode(64 + userData.chantier_id)}` : 'Admin'
+                                chantier: chantierNom
                             };
                             
                             setCurrentUser(formattedUser);
