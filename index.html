@@ -620,15 +620,15 @@
                                 <input
                                     type="text"
                                     placeholder="Nom du chantier"
-                                    defaultValue=""
-                                    onBlur={(e) => setNewChantier(prev => ({...prev, nom: e.target.value}))}
+                                    value={newChantier.nom}
+                                    onChange={(e) => setNewChantier(prev => ({...prev, nom: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Description"
-                                    defaultValue=""
-                                    onBlur={(e) => setNewChantier(prev => ({...prev, description: e.target.value}))}
+                                    value={newChantier.description}
+                                    onChange={(e) => setNewChantier(prev => ({...prev, description: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
@@ -677,19 +677,19 @@
                                 <input
                                     type="text"
                                     placeholder="Nom de l'article"
-                                    defaultValue=""
-                                    onBlur={(e) => setNewArticle(prev => ({...prev, nom: e.target.value}))}
+                                    value={newArticle.nom}
+                                    onChange={(e) => setNewArticle(prev => ({...prev, nom: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <input
                                     type="number"
                                     placeholder="Quantité initiale"
-                                    defaultValue=""
-                                    onBlur={(e) => setNewArticle(prev => ({...prev, quantite: e.target.value}))}
+                                    value={newArticle.quantite}
+                                    onChange={(e) => setNewArticle(prev => ({...prev, quantite: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <select
-                                    defaultValue=""
+                                    value={newArticle.chantier_id}
                                     onChange={(e) => setNewArticle(prev => ({...prev, chantier_id: e.target.value}))}
                                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
