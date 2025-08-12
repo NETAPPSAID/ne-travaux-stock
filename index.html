@@ -242,6 +242,99 @@
                                 console.error('❌ [SUPABASE] Erreur deleteUser:', err);
                                 return { data: null, error: err }
                             }
+                        },
+
+                        // ===== GESTION DES ENTRÉES =====
+                        async addEntree(entree) {
+                            try {
+                                console.log('📥 [SUPABASE] Tentative d\'ajout entrée:', entree);
+                                const { data, error } = await supabase
+                                    .from('entrees')
+                                    .insert(entree)
+                                    .select()
+                                console.log('📥 [SUPABASE] Résultat ajout entrée:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur addEntree:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async getEntrees(chantier_id = null) {
+                            try {
+                                let query = supabase.from('entrees').select('*');
+                                if (chantier_id) {
+                                    query = query.eq('chantier_id', chantier_id);
+                                }
+                                const { data, error } = await query;
+                                console.log('📥 [SUPABASE] Résultat getEntrees:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur getEntrees:', err);
+                                return []
+                            }
+                        },
+
+                        // ===== GESTION DES SORTIES =====
+                        async addSortie(sortie) {
+                            try {
+                                console.log('📤 [SUPABASE] Tentative d\'ajout sortie:', sortie);
+                                const { data, error } = await supabase
+                                    .from('sorties')
+                                    .insert(sortie)
+                                    .select()
+                                console.log('📤 [SUPABASE] Résultat ajout sortie:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur addSortie:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async getSorties(chantier_id = null) {
+                            try {
+                                let query = supabase.from('sorties').select('*');
+                                if (chantier_id) {
+                                    query = query.eq('chantier_id', chantier_id);
+                                }
+                                const { data, error } = await query;
+                                console.log('📤 [SUPABASE] Résultat getSorties:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur getSorties:', err);
+                                return []
+                            }
+                        },
+
+                        // ===== GESTION DES COMMANDES =====
+                        async addCommande(commande) {
+                            try {
+                                console.log('📋 [SUPABASE] Tentative d\'ajout commande:', commande);
+                                const { data, error } = await supabase
+                                    .from('commandes')
+                                    .insert(commande)
+                                    .select()
+                                console.log('📋 [SUPABASE] Résultat ajout commande:', { data, error });
+                                return { data, error }
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur addCommande:', err);
+                                return { data: null, error: err }
+                            }
+                        },
+
+                        async getCommandes(chantier_id = null) {
+                            try {
+                                let query = supabase.from('commandes').select('*');
+                                if (chantier_id) {
+                                    query = query.eq('chantier_id', chantier_id);
+                                }
+                                const { data, error } = await query;
+                                console.log('📋 [SUPABASE] Résultat getCommandes:', { data: data?.length || 0, error });
+                                return data || []
+                            } catch (err) {
+                                console.error('❌ [SUPABASE] Erreur getCommandes:', err);
+                                return []
+                            }
                         }
                     }
 
@@ -341,10 +434,20 @@
             const [articles, setArticles] = useState([]);
             const [loading, setLoading] = useState(false);
             
+            // Nouveaux états pour les fonctionnalités pointeur
+            const [entrees, setEntrees] = useState([]);
+            const [sorties, setSorties] = useState([]);
+            const [commandes, setCommandes] = useState([]);
+            
             // Utiliser useRef pour éviter les re-renders
             const chantierFormRef = useRef({ nom: '', description: '', icone: '🏗️' });
             const articleFormRef = useRef({ nom: '', quantite: '', icone: '📦', chantier_id: '' });
             const userFormRef = useRef({ nom: '', matricule: '', password: '', chantier_id: '' });
+            
+            // Nouveaux refs pour les formulaires pointeur
+            const entreeFormRef = useRef({ article_id: '', quantite: '', date: '', bon_entree: '' });
+            const sortieFormRef = useRef({ article_id: '', quantite: '', date: '', motif: '' });
+            const commandeFormRef = useRef({ article_nom: '', quantite: '', message: '' });
 
             // Fonction pour recharger TOUTES les données depuis Supabase
             const reloadAllData = useCallback(async () => {
@@ -361,23 +464,43 @@
                     console.log('🔄 Appel de getChantiers...');
                     const chantiersData = await window.supabaseDB.getChantiers();
                     
+                    // Charger les données pointeur si l'utilisateur est connecté
+                    let entreesData = [];
+                    let sortiesData = [];
+                    let commandesData = [];
+                    
+                    if (currentUser) {
+                        console.log('🔄 Appel de getEntrees...');
+                        entreesData = await window.supabaseDB.getEntrees();
+                        console.log('🔄 Appel de getSorties...');
+                        sortiesData = await window.supabaseDB.getSorties();
+                        console.log('🔄 Appel de getCommandes...');
+                        commandesData = await window.supabaseDB.getCommandes();
+                    }
+                    
                     console.log('📊 Données rechargées:', {
                         articles: articlesData?.length || 0,
                         users: usersData?.length || 0,
-                        chantiers: chantiersData?.length || 0
+                        chantiers: chantiersData?.length || 0,
+                        entrees: entreesData?.length || 0,
+                        sorties: sortiesData?.length || 0,
+                        commandes: commandesData?.length || 0
                     });
                     
                     // Mettre à jour les états
                     setArticles(articlesData || []);
                     setUsers(usersData || []);
                     setChantiers(chantiersData || []);
+                    setEntrees(entreesData || []);
+                    setSorties(sortiesData || []);
+                    setCommandes(commandesData || []);
                     setLoading(false);
                     
                 } catch (error) {
                     console.error('❌ Erreur lors du rechargement:', error);
                     setLoading(false);
                 }
-            }, []);
+            }, [currentUser]);
 
             // Charger les données au démarrage
             useEffect(() => {
