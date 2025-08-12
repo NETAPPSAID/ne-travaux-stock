@@ -182,7 +182,13 @@ window.supabaseDB = {
   },
 
   // ===== SYNCHRONISATION TEMPS RÉEL =====
+  // TEMPORAIREMENT DÉSACTIVÉE POUR RÉSOUDRE LE PROBLÈME DE PERSISTANCE
   async syncWithSupabase() {
+    console.log('🚫 Synchronisation temps réel DÉSACTIVÉE temporairement')
+    console.log('🚫 Pour résoudre le problème de persistance des suppressions')
+    
+    // CODE DÉSACTIVÉ TEMPORAIREMENT
+    /*
     console.log('🔄 Démarrage de la synchronisation temps réel...')
     
     // Écouter les changements sur les chantiers
@@ -234,5 +240,6 @@ window.supabaseDB = {
       .subscribe()
 
     console.log('✅ Synchronisation temps réel activée')
+    */
   }
 }

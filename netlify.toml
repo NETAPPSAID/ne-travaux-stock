@@ -3,25 +3,25 @@
 
 [[redirects]]
   from = "/"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
   force = true
 
 [[redirects]]
   from = "/index.html"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
   force = true
 
 [[redirects]]
   from = "/final.html"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
   force = true
 
 [[redirects]]
   from = "/main.html"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
   force = true
 
@@ -52,7 +52,7 @@
     Cache-Control = "no-cache"
 
 [[headers]]
-  for = "/app.html"
+  for = "/index.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
